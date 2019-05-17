@@ -7,8 +7,40 @@ from bot.utils import bot_not_running_protect
 
 
 class UserSettings(models.Model):
+    IDLE = 'idle'
+    SET_CAPTION_MENU = 'set caption menu'
+    SET_CAPTION = 'set caption'
+    SETTINGS_MENU = 'settings menu'
+    CHANNEL_SETTINGS_MENU = 'channel settings menu'
+    PRE_REMOVE_CHANNEL = 'pre remove channel'
+
+    STATES = (IDLE, SET_CAPTION_MENU, SET_CAPTION, SETTINGS_MENU, CHANNEL_SETTINGS_MENU, PRE_REMOVE_CHANNEL)
+
     user_id = models.fields.BigIntegerField(primary_key=True)
     _user: User = None  # Actual telegram User object
+
+    current_channel = models.ForeignKey('ChannelSettings',
+                                        related_name='current_user',
+                                        on_delete=models.DO_NOTHING,
+                                        blank=True,
+                                        null=True)
+
+    _user_state = models.fields.CharField(max_length=100,
+                                          choices=map(lambda s: (s, s), STATES),
+                                          default=IDLE,
+                                          verbose_name='State')
+
+    @property
+    def state(self):
+        return self._user_state
+
+    @state.setter
+    def state(self, value):
+        if value not in self.STATES:
+            raise KeyError('State does no exists')
+
+        self._user_state = value
+        self.save()
 
     @cached_property_ttl(ttl=3600)
     @bot_not_running_protect
