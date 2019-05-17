@@ -92,7 +92,7 @@ class Production(Base):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'django_telegram_bot_base_prod',
+            'NAME': 'channel_automa_prod',
             'USER': 'db_user',
             'PASSWORD': 'db_user_password',
             'HOST': 'localhost',
@@ -123,7 +123,7 @@ class Development(Base):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'django_telegram_bot_base_dev',
+            'NAME': 'channel_automa_dev',
             'USER': '',
             'PASSWORD': '',
             'HOST': 'localhost',
