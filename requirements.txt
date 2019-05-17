@@ -1,4 +1,5 @@
 asn1crypto==0.24.0
+cached-property==1.5.1
 certifi==2019.3.9
 cffi==1.12.3
 cryptography==2.6.1
