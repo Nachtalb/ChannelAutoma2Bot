@@ -4,10 +4,12 @@ from typing import Type, List
 
 from telegram import Bot, Chat, Message, Update, User
 
-from telegram.ext import run_async, Handler
+from telegram.ext import run_async, Handler, MessageHandler
 from bot.models.usersettings import UserSettings
 from bot.telegrambot import my_bot
-from bot.utils import get_class_that_defined_method
+from bot.utils.internal import get_class_that_defined_method
+
+_plugin_group_index = 0
 
 
 class CancelOperation(Exception):
@@ -36,6 +38,8 @@ class BaseCommand:
     @staticmethod
     def command_wrapper(handler: Type[Handler] or Handler = None, names: str or List[str] = None,
                         is_async: bool = False, **kwargs):
+        global _plugin_group_index, _messagehandler_group_index
+
         def outer_wrapper(func):
             @wraps(func)
             def wrapper(*inner_args, **inner_kwargs):
@@ -61,6 +65,7 @@ class BaseCommand:
                 else:
                     func(*_args, **_kwargs)
 
+            kwargs.setdefault('group', _plugin_group_index)
             my_bot.add_command(handler=handler, names=names, func=wrapper, **kwargs)
             return wrapper
 
@@ -71,6 +76,7 @@ class BaseCommand:
 __all__ = []
 
 for loader, module_name, is_pkg in pkgutil.walk_packages(__path__):
+    _plugin_group_index += 1
     __all__.append(module_name)
     _module = loader.find_module(module_name).load_module(module_name)
     globals()[module_name] = _module

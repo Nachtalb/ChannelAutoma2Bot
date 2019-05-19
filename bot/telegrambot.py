@@ -37,7 +37,7 @@ class MyBot:
         return self.updater.bot.get_me()
 
     def add_command(self, handler: Type[Handler] or Handler = None, names: str or List[str] = None,
-                    func: Callable = None, is_error: bool = False, **kwargs):
+                    func: Callable = None, is_error: bool = False, group: int = 0, **kwargs):
         if is_error and not func:
             self.logger.fatal('You must give func if you add an error handler.')
             exit(1)
@@ -50,11 +50,11 @@ class MyBot:
         handler = handler or CommandHandler
 
         if isinstance(handler, Handler):
-            self.dispatcher.add_handler(handler=handler)
+            self.dispatcher.add_handler(handler=handler, group=group)
         elif handler == MessageHandler:
-            self.dispatcher.add_handler(handler=handler(kwargs.get('filters', Filters.all), func))
+            self.dispatcher.add_handler(handler=handler(kwargs.get('filters', Filters.all), func), group=group)
         elif handler == CallbackQueryHandler:
-            self.dispatcher.add_handler(handler=handler(func, **kwargs))
+            self.dispatcher.add_handler(handler=handler(func, **kwargs), group=group)
         else:
             if not names:
                 names = [func.__name__]
@@ -62,7 +62,7 @@ class MyBot:
                 names = [names]
 
             for name in names:
-                self.dispatcher.add_handler(handler=handler(name, func, **kwargs))
+                self.dispatcher.add_handler(handler=handler(name, func, **kwargs), group=group)
 
 
 my_bot: MyBot = None

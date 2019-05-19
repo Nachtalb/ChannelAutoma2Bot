@@ -5,7 +5,7 @@ from telegram import Chat
 from django.db import models
 
 from bot.telegrambot import my_bot
-from bot.utils import bot_not_running_protect
+from bot.utils.internal import bot_not_running_protect
 
 
 class ChannelSettings(models.Model):

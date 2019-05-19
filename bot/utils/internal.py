@@ -1,9 +1,7 @@
 import inspect
 import logging
 from functools import wraps
-from typing import Callable, List, Type
-
-from telegram import Animation, Audio, Document, Message, PhotoSize, Video, Voice
+from typing import Callable, Type
 
 from bot.telegrambot import my_bot
 
@@ -13,6 +11,7 @@ bot_not_running_protect_logger = logging.getLogger('bot_not_running_protect')
 def bot_not_running_protect(func):
     """Prevent a function call if bot is not running
     """
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         if my_bot is None:
@@ -40,34 +39,3 @@ def get_class_that_defined_method(meth: Callable or Type) -> Type or None:
         if isinstance(cls, type):
             return cls
     return None
-
-
-def build_menu(*buttons: any,
-               cols: int = None,
-               header_buttons: List[any] = None,
-               footer_buttons: List[any] = None) -> List[List[any]]:
-    """Build a simple list of lists with max columns width
-
-    https://github.com/python-telegram-bot/python-telegram-bot/wiki/Code-snippets#build-a-menu-with-buttons
-    """
-    cols = cols or 2
-    buttons = list(buttons)
-    menu = [buttons[i:i + cols] for i in range(0, len(buttons), cols)]
-
-    if header_buttons:
-        menu.insert(0, header_buttons)
-    if footer_buttons:
-        menu.append(footer_buttons)
-
-    return menu
-
-
-def is_media_message(msg: Message) -> bool:
-    media_types = tuple([Audio, Animation, Document, PhotoSize, Video, Voice])
-    attachment = msg.effective_attachment
-
-    is_media = isinstance(attachment, media_types)
-    if not is_media and isinstance(attachment, list) and attachment:
-        is_media = isinstance(attachment[0], media_types)
-
-    return is_media
