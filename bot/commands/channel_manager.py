@@ -170,6 +170,7 @@ class ChannelManager(BaseCommand):
             self.message.reply_text('You have to send me some text.')
             return
         self.user_settings.current_channel.caption = self.message.text_markdown
+        self.user_settings.current_channel.save()
         self.user_settings.state = UserSettings.IDLE
         self.message.reply_text(f'The caption of {self.user_settings.current_channel.name} was set to:'
                                 f'\n{self.message.text_markdown}', parse_mode=ParseMode.MARKDOWN)
