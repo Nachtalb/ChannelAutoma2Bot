@@ -1,5 +1,6 @@
 from typing import List
 
+from django.template.loader import get_template
 from telegram import Chat, ChatMember, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, ParseMode
 from telegram.error import Unauthorized
 from telegram.ext import CallbackQueryHandler, Filters, MessageHandler
@@ -52,6 +53,9 @@ class ChannelManager(BaseCommand):
 
     @BaseCommand.command_wrapper(names=['start', 'reset', 'cancel'])
     def start(self):
+        if 'start' in self.message.text:
+            self.message.reply_html(get_template('commands/builtins/start.html').render())
+
         if 'cancel' in self.message.text and self.user_settings.state != UserSettings.IDLE:
             self.message.reply_text('Current action was cancelled')
 
