@@ -7,6 +7,8 @@ from bot.utils.internal import bot_not_running_protect
 
 
 class UserSettings(models.Model):
+    SET_REACTIONS_MENU = 'set reactions menu'
+    SET_REACTIONS = 'set reactions'
     IDLE = 'idle'
     SET_CAPTION_MENU = 'set caption menu'
     SET_CAPTION = 'set caption'
@@ -14,7 +16,8 @@ class UserSettings(models.Model):
     CHANNEL_SETTINGS_MENU = 'channel settings menu'
     PRE_REMOVE_CHANNEL = 'pre remove channel'
 
-    STATES = (IDLE, SET_CAPTION_MENU, SET_CAPTION, SETTINGS_MENU, CHANNEL_SETTINGS_MENU, PRE_REMOVE_CHANNEL)
+    STATES = (IDLE, SET_CAPTION_MENU, SET_CAPTION, SETTINGS_MENU, CHANNEL_SETTINGS_MENU, PRE_REMOVE_CHANNEL,
+              SET_REACTIONS_MENU, SET_REACTIONS)
 
     user_id = models.fields.BigIntegerField(primary_key=True)
     _user: User = None  # Actual telegram User object

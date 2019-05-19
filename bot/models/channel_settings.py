@@ -1,3 +1,6 @@
+import json
+from typing import List
+
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from telegram import Chat
@@ -17,6 +20,7 @@ class ChannelSettings(models.Model):
     users = models.ManyToManyField('UserSettings', related_name='channels', blank=True)
 
     caption = models.fields.TextField(blank=True, null=True)
+    _reactions = models.fields.TextField(blank=True, null=True)
 
     def update_from_chat(self, chat: Chat):
         self.channel_username = chat.username
@@ -36,6 +40,14 @@ class ChannelSettings(models.Model):
         self.update_from_chat(self.chat)
         if save:
             self.save()
+
+    @property
+    def reactions(self) -> List[str]:
+        return json.loads(self._reactions or '[]')
+
+    @reactions.setter
+    def reactions(self, value: List[str]):
+        self._reactions = json.dumps(value or [])
 
 
 @receiver(pre_save)

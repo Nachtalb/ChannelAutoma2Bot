@@ -65,7 +65,7 @@ class ChannelManager(BaseCommand):
         self.user_settings.current_channel = None
         self.user_settings.state = UserSettings.IDLE
 
-        buttons = build_menu('Auto Caption', 'Settings')
+        buttons = build_menu('Auto Caption', 'Reactions', footer_buttons=['Settings'])
         self.message.reply_text('What do you want to do?', reply_markup=ReplyKeyboardMarkup(buttons))
 
     @BaseCommand.command_wrapper(MessageHandler,
