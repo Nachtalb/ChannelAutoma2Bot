@@ -33,6 +33,9 @@ class UserSettings(models.Model):
                                           default=IDLE,
                                           verbose_name='State')
 
+    def __str__(self):
+        return self.name or str(self.user_id)
+
     @property
     def state(self):
         return self._user_state

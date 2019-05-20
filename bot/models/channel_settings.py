@@ -22,6 +22,9 @@ class ChannelSettings(models.Model):
     caption = models.fields.TextField(blank=True, null=True)
     _reactions = models.fields.TextField(blank=True, null=True)
 
+    def __str__(self):
+        return f'{self.channel_id}:{self.name}'
+
     def update_from_chat(self, chat: Chat):
         self.channel_username = chat.username
         self.channel_title = chat.title

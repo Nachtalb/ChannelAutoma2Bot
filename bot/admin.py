@@ -6,21 +6,42 @@ from bot.models.usersettings import UserSettings
 
 
 class UserSettingsAdmin(admin.ModelAdmin):
-    list_display = ['user_id', 'name', 'link']
+    list_display = ['user_id', 'name', 'link', 'channel__names']
+    list_filter = ['channels']
+
+    def channel__names(self, obj):
+        return list(map(lambda o: o.name, obj.channels.all()))
 
 
 admin.site.register(UserSettings, UserSettingsAdmin)
 
 
 class ChannelSettingsAdmin(admin.ModelAdmin):
-    pass
+    list_display = ['channel_id', 'name', 'added_by', 'caption_small', 'reactions']
+    list_filter = ['added_by', 'users']
+
+    def caption_small(self, obj):
+        if not obj.caption:
+            return None
+        return f'{obj.caption[:100]}...'
 
 
 admin.site.register(ChannelSettings, ChannelSettingsAdmin)
 
 
 class ReactionsAdmin(admin.ModelAdmin):
-    pass
+    list_display = ['reaction', 'message', 'channel__name', 'users__count']
+    list_filter = ['message', 'channel', 'users']
+
+    def channel__name(self, obj):
+        return obj.channel.name
+
+    channel__name.admin_order_field = 'channel__name'
+
+    def users__count(self, obj):
+        return obj.users.count()
+
+    users__count.admin_order_field = 'users__count'
 
 
 admin.site.register(Reaction, ReactionsAdmin)
