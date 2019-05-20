@@ -85,11 +85,11 @@ class Base(Configuration):
 
     USE_TZ = True
 
-    STATIC_URL = 'static/'
+    STATIC_URL = '/static/'
     STATIC_ROOT = (BASE_PATH / 'static').as_posix()
 
     MEDIA_ROOT = (BASE_PATH / 'media').as_posix()
-    MEDIA_URL = 'media/'
+    MEDIA_URL = '/media/'
 
 
 class Production(Base):

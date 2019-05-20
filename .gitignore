@@ -257,3 +257,7 @@ pip-selfcheck.json
 
 ### Bot
 .idea/
+static/*
+!static/.gitkeep
+media/*
+!media/.gitkeep
