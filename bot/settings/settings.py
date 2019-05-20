@@ -11,7 +11,12 @@ class Base(Configuration):
 
     SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
 
-    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+    @property
+    def ALLOWED_HOSTS(self):
+        allowed_hosts = ['localhost', '127.0.0.1']
+        for allowed_host in filter(lambda string: string.startswith('ALLOWED_HOST_'), os.environ):
+            allowed_hosts.append(os.environ[allowed_host])
+        return allowed_hosts
 
     INSTALLED_APPS = [
         'django.contrib.admin',
@@ -94,8 +99,8 @@ class Production(Base):
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': 'channel_automa_prod',
-            'USER': 'db_user',
-            'PASSWORD': 'db_user_password',
+            'USER': os.environ.get('DJANGO_DB_USER'),
+            'PASSWORD': os.environ.get('DJANGO_DB_PASSWD'),
             'HOST': 'localhost',
             'PORT': '5432',
         }
@@ -104,7 +109,7 @@ class Production(Base):
     # Telegram Bot
     DJANGO_TELEGRAMBOT = {
         'MODE': 'WEBHOOK',
-        'WEBHOOK_SITE': 'https://mywebsite.com',
+        'WEBHOOK_SITE': os.environ.get('DJANGO_WEBSITE'),
         'WEBHOOK_PREFIX': 'webhook/',
         'STRICT_INIT': True,
 

@@ -1,8 +1,13 @@
 import os
+import dotenv
+from pathlib import Path
+
+env_path = Path(__file__).absolute().parent.parent / '.env'
+
+dotenv.read_dotenv(env_path)
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bot.settings.settings')
 
 from configurations.wsgi import get_wsgi_application
-
-os.environ.setdefault('DJANGO_CONFIGURATION', 'Production')
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bot.settings.settings')
 
 application = get_wsgi_application()

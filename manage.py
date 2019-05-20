@@ -3,9 +3,11 @@
 import os
 import sys
 
+import dotenv
+
 
 def main():
-    os.environ.setdefault('DJANGO_CONFIGURATION', 'Development')
+    dotenv.read_dotenv()
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bot.settings.settings')
 
     from configurations.management import execute_from_command_line
