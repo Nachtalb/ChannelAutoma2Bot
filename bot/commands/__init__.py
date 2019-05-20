@@ -29,7 +29,7 @@ class BaseCommand:
         self.chat = update.effective_chat
         self.message = update.effective_message
         self.update = update
-        self.bot = my_bot.updater.bot
+        self.bot = my_bot.bot
 
         self.user_settings = None
         if self.user:

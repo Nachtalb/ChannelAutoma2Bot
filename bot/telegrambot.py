@@ -26,7 +26,7 @@ class MyBot:
         self.logger.info('Loading handlers for telegram bot')
 
         self.dispatcher = DjangoTelegramBot.dispatcher
-        self.updater = DjangoTelegramBot.updater
+        self.bot = self.dispatcher.bot
 
         self.add_command(func=self.error, is_error=True)
 
@@ -34,7 +34,7 @@ class MyBot:
         self.logger.warning(f'Update "{update}" caused error "{error}"')
 
     def me(self) -> User:
-        return self.updater.bot.get_me()
+        return self.bot.get_me()
 
     def add_command(self, handler: Type[Handler] or Handler = None, names: str or List[str] = None,
                     func: Callable = None, is_error: bool = False, group: int = 0, **kwargs):
