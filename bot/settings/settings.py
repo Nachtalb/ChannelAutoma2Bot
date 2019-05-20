@@ -3,7 +3,7 @@ from configurations import Configuration
 import os
 from pathlib import Path
 
-BASE_PATH = Path().absolute().parent.parent
+BASE_PATH = Path(__file__).absolute().parent.parent.parent
 
 
 class Base(Configuration):
@@ -80,7 +80,8 @@ class Base(Configuration):
 
     USE_TZ = True
 
-    STATIC_URL = '/static/'
+    STATIC_URL = 'static/'
+    STATIC_ROOT = (BASE_PATH / 'static').as_posix()
 
     MEDIA_ROOT = (BASE_PATH / 'media').as_posix()
     MEDIA_URL = 'media/'
