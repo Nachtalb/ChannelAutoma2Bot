@@ -6,18 +6,6 @@ from telegram import Bot, TelegramError, Update, User
 from telegram.ext import CallbackQueryHandler, CommandHandler, Filters, Handler, MessageHandler
 
 
-def start(bot, update):
-    bot.sendMessage(update.message.chat_id, text='Hi!')
-
-
-def help(bot, update):
-    bot.sendMessage(update.message.chat_id, text='Help!')
-
-
-def echo(bot, update):
-    bot.sendMessage(update.message.chat_id, text=update.message.text)
-
-
 class MyBot:
     def __init__(self):
         self.logger = logging.getLogger(self.__class__.__name__)
