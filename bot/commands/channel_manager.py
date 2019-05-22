@@ -1,5 +1,5 @@
 from django.template.loader import get_template
-from telegram import Chat, ChatMember, InlineKeyboardButton, ReplyKeyboardMarkup
+from telegram import Chat, InlineKeyboardButton, ReplyKeyboardMarkup
 from telegram.error import Unauthorized
 from telegram.ext import CallbackQueryHandler, Filters, MessageHandler
 
@@ -7,8 +7,7 @@ from bot.commands import BaseCommand
 from bot.filters import Filters as OwnFilters
 from bot.models.channel_settings import ChannelSettings
 from bot.models.usersettings import UserSettings
-from bot.telegrambot import my_bot
-from bot.utils.chat import build_menu, channel_selector_menu
+from bot.utils.chat import build_menu, channel_selector_menu, check_bot_permissions, check_user_permissions
 
 
 class ChannelManager(BaseCommand):
@@ -20,33 +19,26 @@ class ChannelManager(BaseCommand):
             return
 
         try:
-            member = possible_channel.get_member(my_bot.me().id)
-        except Unauthorized:
-            member = None
-
-        if not member or member.status == member.LEFT:
-            self.message.reply_text('I have to be a member of this chat to function')
+            check_bot_permissions(possible_channel)
+            check_user_permissions(self.user, possible_channel)
+        except Unauthorized as e:
+            self.message.reply_text(f'Error: {e.message}')
             return
 
-        user_member: ChatMember = possible_channel.get_member(self.user.id)
-
-        if user_member.status not in [user_member.ADMINISTRATOR, user_member.CREATOR]:
-            self.message.reply_text('You must be an admin yourself to use me.')
-        else:
+        try:
             message = 'Channel was updated'
-            try:
-                channel = ChannelSettings.objects.get(channel_id=possible_channel.id)
-            except ChannelSettings.DoesNotExist:
-                message = 'Channel was added'
-                channel = ChannelSettings.objects.create(channel_id=possible_channel.id,
-                                                         added_by=self.user_settings)
+            channel = ChannelSettings.objects.get(channel_id=possible_channel.id)
+        except ChannelSettings.DoesNotExist:
+            message = 'Channel was added'
+            channel = ChannelSettings.objects.create(channel_id=possible_channel.id,
+                                                     added_by=self.user_settings)
 
-            if self.user_settings not in channel.users.all():
-                channel.users.add(self.user_settings)
+        if self.user_settings not in channel.users.all():
+            channel.users.add(self.user_settings)
 
-            channel.update_from_chat(possible_channel)
-            channel.save()
-            self.message.reply_text(message)
+        channel.update_from_chat(possible_channel)
+        channel.save()
+        self.message.reply_text(message)
 
     @BaseCommand.command_wrapper(CallbackQueryHandler, pattern='^(home|cancel)$')
     @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.text_is(['cancel', 'home', 'reset'], lower=True))

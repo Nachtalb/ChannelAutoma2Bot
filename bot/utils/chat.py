@@ -1,9 +1,12 @@
 import logging
 from typing import List
 
-from telegram import Animation, Audio, Document, InlineKeyboardButton, InlineKeyboardMarkup, Message, PhotoSize, Video, Voice
+from telegram import Animation, Audio, Chat, ChatMember, Document, InlineKeyboardButton, InlineKeyboardMarkup, Message, PhotoSize, \
+    User, Video, Voice
+from telegram.error import Unauthorized
 
 from bot.models.usersettings import UserSettings
+from bot.telegrambot import my_bot
 
 bot_not_running_protect_logger = logging.getLogger('bot_not_running_protect')
 
@@ -48,3 +51,21 @@ def channel_selector_menu(user: UserSettings, prefix: str,
     for channel in user.channels.all():
         buttons.append(InlineKeyboardButton(channel.name, callback_data=f'{prefix}:{channel.channel_id}'))
     return InlineKeyboardMarkup(build_menu(*buttons, header_buttons=header_buttons, footer_buttons=footer_buttons))
+
+
+def check_user_permissions(user: User, channel: Chat) -> bool:
+    user_member: ChatMember = channel.get_member(user.id)
+
+    if user_member.status not in [user_member.ADMINISTRATOR, user_member.CREATOR]:
+        raise Unauthorized('User is not an admin of the channel.')
+    return True
+
+
+def check_bot_permissions(channel: Chat) -> bool:
+    try:
+        member = channel.get_member(my_bot.me().id)
+        if member.status == member.LEFT:
+            raise Unauthorized('Not a member')
+    except Unauthorized:
+        raise Unauthorized('Not a member')
+    return True
