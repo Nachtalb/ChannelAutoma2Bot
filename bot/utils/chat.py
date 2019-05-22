@@ -1,8 +1,7 @@
 import logging
 from typing import List
 
-from telegram import Animation, Audio, Document, Message, PhotoSize, Video, Voice, InlineKeyboardButton, \
-    InlineKeyboardMarkup
+from telegram import Animation, Audio, Document, InlineKeyboardButton, InlineKeyboardMarkup, Message, PhotoSize, Video, Voice
 
 from bot.models.usersettings import UserSettings
 

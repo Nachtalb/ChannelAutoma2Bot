@@ -1,11 +1,10 @@
 import json
 from typing import List
 
+from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from telegram import Chat
-
-from django.db import models
 
 from bot.telegrambot import my_bot
 from bot.utils.internal import bot_not_running_protect
@@ -36,7 +35,7 @@ class ChannelSettings(models.Model):
     @property
     @bot_not_running_protect
     def chat(self) -> Chat:
-        return my_bot.updater.bot.get_chat(self.channel_id)
+        return my_bot.bot.get_chat(self.channel_id)
 
     @bot_not_running_protect
     def auto_update_values(self, save=True):

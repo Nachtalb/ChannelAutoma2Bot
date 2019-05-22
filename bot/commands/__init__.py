@@ -1,10 +1,10 @@
 import pkgutil
 from functools import wraps
-from typing import Type, List
+from typing import List, Type
 
 from telegram import Bot, Chat, Message, Update, User
+from telegram.ext import Handler, run_async
 
-from telegram.ext import run_async, Handler, MessageHandler
 from bot.models.usersettings import UserSettings
 from bot.telegrambot import my_bot
 from bot.utils.internal import get_class_that_defined_method

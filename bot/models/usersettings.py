@@ -62,5 +62,5 @@ class UserSettings(models.Model):
     @bot_not_running_protect
     def user(self) -> User:
         if not self._user:
-            self._user = my_bot.updater.bot.get_chat(self.user_id)
+            self._user = my_bot.bot.get_chat(self.user_id)
         return self._user

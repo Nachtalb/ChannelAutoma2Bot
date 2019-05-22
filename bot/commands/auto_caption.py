@@ -1,13 +1,12 @@
 from django.template.loader import get_template
-from telegram import Bot, ParseMode, Update, ReplyKeyboardMarkup
-from telegram.ext import Filters, MessageHandler, CallbackQueryHandler
+from telegram import ParseMode, ReplyKeyboardMarkup
+from telegram.ext import CallbackQueryHandler, Filters, MessageHandler
 
-from bot.commands import BaseCommand, CancelOperation
-from bot.models.channel_settings import ChannelSettings
-
+from bot.commands import BaseCommand
 from bot.filters import Filters as OwnFilters
+from bot.models.channel_settings import ChannelSettings
 from bot.models.usersettings import UserSettings
-from bot.utils.chat import is_media_message, channel_selector_menu, build_menu
+from bot.utils.chat import build_menu, channel_selector_menu, is_media_message
 
 
 class AutoCaption(BaseCommand):

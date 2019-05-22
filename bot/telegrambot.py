@@ -1,10 +1,9 @@
-from typing import Type, List, Callable
-
-from telegram import Bot, Update, User, TelegramError
-from telegram.ext import CommandHandler, MessageHandler, Filters, Handler, CallbackQueryHandler
-from django_telegrambot.apps import DjangoTelegramBot
-
 import logging
+from typing import Callable, List, Type
+
+from django_telegrambot.apps import DjangoTelegramBot
+from telegram import Bot, TelegramError, Update, User
+from telegram.ext import CallbackQueryHandler, CommandHandler, Filters, Handler, MessageHandler
 
 
 def start(bot, update):
@@ -65,10 +64,12 @@ class MyBot:
                 self.dispatcher.add_handler(handler=handler(name, func, **kwargs), group=group)
 
 
+# noinspection PyTypeChecker
 my_bot: MyBot = None
 
 
 def main():
     global my_bot
     my_bot = MyBot()
+    # noinspection PyUnresolvedReferences
     from . import commands

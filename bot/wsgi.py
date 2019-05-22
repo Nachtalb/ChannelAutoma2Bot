@@ -1,6 +1,7 @@
 import os
-import dotenv
 from pathlib import Path
+
+import dotenv
 
 env_path = Path(__file__).absolute().parent.parent / '.env'
 

@@ -1,7 +1,7 @@
-from configurations import Configuration
-
 import os
 from pathlib import Path
+
+from configurations import Configuration
 
 BASE_PATH = Path(__file__).absolute().parent.parent.parent
 

@@ -1,17 +1,16 @@
-from typing import Tuple, List
+from typing import List, Tuple
 
 import emoji as emoji
 from django.template.loader import get_template
-from telegram import ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, Bot, Update
-from telegram.ext import Filters, MessageHandler, CallbackQueryHandler
+from telegram import Bot, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, Update
+from telegram.ext import CallbackQueryHandler, Filters, MessageHandler
 
 from bot.commands import BaseCommand
-from bot.models.channel_settings import ChannelSettings
-
 from bot.filters import Filters as OwnFilters
-from bot.models.usersettings import UserSettings
-from bot.utils.chat import channel_selector_menu, build_menu
+from bot.models.channel_settings import ChannelSettings
 from bot.models.reactions import Reaction
+from bot.models.usersettings import UserSettings
+from bot.utils.chat import build_menu, channel_selector_menu
 
 
 class AutoReaction(BaseCommand):
@@ -22,7 +21,6 @@ class AutoReaction(BaseCommand):
             self.channel_settings = ChannelSettings.objects.get(channel_id=self.chat.id)
         except ChannelSettings.DoesNotExist:
             self.channel_settings = None
-
 
     @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.in_channel & (Filters.text | OwnFilters.is_media))
     def auto_reaction(self):
@@ -52,7 +50,7 @@ class AutoReaction(BaseCommand):
 
     @BaseCommand.command_wrapper(CallbackQueryHandler, pattern='^reaction:.*')
     def update_reaction(self):
-        query: CallbackQuery= self.update.callback_query
+        query: CallbackQuery = self.update.callback_query
         data = query.data
         _, message_id, emoji = data.split(':')
         try:
