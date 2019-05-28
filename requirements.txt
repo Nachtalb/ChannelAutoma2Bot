@@ -2,5 +2,6 @@ Django==2.2.1
 django-configurations==2.1
 django-dotenv==1.4.2
 django-telegrambot==1.0.1
+django-extensions==2.1.7
 emoji==0.5.2
 psycopg2==2.8.2

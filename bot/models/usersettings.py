@@ -1,12 +1,13 @@
 from cached_property import cached_property_ttl
 from django.db import models
+from django_extensions.db.models import TimeStampedModel
 from telegram import User
 
 from bot.telegrambot import my_bot
 from bot.utils.internal import bot_not_running_protect
 
 
-class UserSettings(models.Model):
+class UserSettings(TimeStampedModel):
     SET_REACTIONS_MENU = 'set reactions menu'
     SET_REACTIONS = 'set reactions'
     IDLE = 'idle'

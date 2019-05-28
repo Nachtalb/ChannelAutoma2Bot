@@ -4,13 +4,14 @@ from typing import List
 from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
+from django_extensions.db.models import TimeStampedModel
 from telegram import Chat
 
 from bot.telegrambot import my_bot
 from bot.utils.internal import bot_not_running_protect
 
 
-class ChannelSettings(models.Model):
+class ChannelSettings(TimeStampedModel):
     channel_id = models.fields.BigIntegerField(primary_key=True)
     channel_username = models.fields.CharField(max_length=200, blank=True, null=True)
     channel_title = models.fields.CharField(max_length=200, blank=True, null=True)
