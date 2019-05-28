@@ -58,7 +58,7 @@ class BaseCommand:
 
     @staticmethod
     def register_home(method: Callable):
-        if BaseCommand.home:
+        if BaseCommand._home:
             logger.warning(f'Overriding home method from {BaseCommand.home} to {method}')
         BaseCommand._home = method
 
