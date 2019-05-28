@@ -25,10 +25,6 @@ class ChannelSettings(TimeStampedModel):
     def __str__(self):
         return f'{self.channel_id}:{self.name}'
 
-    def update_from_chat(self, chat: Chat):
-        self.channel_username = chat.username
-        self.channel_title = chat.title
-
     @property
     def name(self) -> str:
         return self.channel_title or '@' + self.channel_username
@@ -38,11 +34,22 @@ class ChannelSettings(TimeStampedModel):
     def chat(self) -> Chat:
         return my_bot.bot.get_chat(self.channel_id)
 
-    @bot_not_running_protect
-    def auto_update_values(self, save=True):
-        self.update_from_chat(self.chat)
-        if save:
-            self.save()
+    def save(self, **kwargs):
+        if kwargs.get('auto_update', False):
+            self.auto_update_values(save=False)
+            kwargs.pop('auto_update')
+        super().save(**kwargs)
+
+    def auto_update_values(self, chat: Chat = None, save=True) -> bool:
+        chat = chat or self.chat
+        if chat:
+            self.channel_username = chat.username
+            self.channel_title = chat.title
+
+            if save:
+                self.save()
+            return True
+        return False
 
     @property
     def reactions(self) -> List[str]:

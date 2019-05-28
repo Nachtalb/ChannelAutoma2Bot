@@ -34,6 +34,7 @@ class BaseCommand:
         self.user_settings = None
         if self.user:
             self.user_settings = UserSettings.objects.get_or_create(user_id=self.user.id)[0]
+            self.user_settings.auto_update_values(self.user, save=True)
 
     @staticmethod
     def command_wrapper(handler: Type[Handler] or Handler = None, names: str or List[str] = None,

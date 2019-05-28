@@ -34,8 +34,17 @@ class UserSettings(TimeStampedModel):
                                           default=IDLE,
                                           verbose_name='State')
 
+    username = models.fields.CharField(max_length=200, blank=True, null=True)
+    user_fullname = models.fields.CharField(max_length=200)
+
     def __str__(self):
-        return self.name or str(self.user_id)
+        return f'{self.user_id}@{self.username}'
+
+    def save(self, **kwargs):
+        if kwargs.get('auto_update', False):
+            self.auto_update_values(save=False)
+            kwargs.pop('auto_update')
+        super().save(**kwargs)
 
     @property
     def state(self):
@@ -49,10 +58,16 @@ class UserSettings(TimeStampedModel):
         self._user_state = value
         self.save()
 
-    @cached_property_ttl(ttl=3600)
-    @bot_not_running_protect
-    def name(self) -> str:
-        return self.user.username or self.user.full_name
+    def auto_update_values(self, user: User = None, save=True) -> bool:
+        user = user or self.user
+        if user:
+            self.username = user.username
+            self.user_fullname = user.full_name
+
+            if save:
+                self.save()
+            return True
+        return False
 
     @cached_property_ttl(ttl=3600)
     @bot_not_running_protect

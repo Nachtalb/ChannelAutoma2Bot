@@ -36,8 +36,7 @@ class ChannelManager(BaseCommand):
         if self.user_settings not in channel.users.all():
             channel.users.add(self.user_settings)
 
-        channel.update_from_chat(possible_channel)
-        channel.save()
+        channel.save(auto_update=True)
         self.message.reply_text(message)
 
     @BaseCommand.command_wrapper(CallbackQueryHandler, pattern='^(home|cancel)$')
