@@ -16,16 +16,8 @@ from bot.utils.chat import build_menu, channel_selector_menu
 class AutoReaction(BaseCommand):
     BaseCommand.register_start_button('Auto Caption')
 
-    def __init__(self, bot: Bot, update: Update, *args, **kwargs):
-        super().__init__(bot, update, *args, **kwargs)
-        try:
-            self.channel_settings = ChannelSettings.objects.get(channel_id=self.chat.id)
-        except ChannelSettings.DoesNotExist:
-            self.channel_settings = None
-
     @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.in_channel & (Filters.text | OwnFilters.is_media))
     def auto_reaction(self):
-
         if not self.channel_settings or not self.channel_settings.reactions:
             return
 
