@@ -6,7 +6,7 @@ from bot.models.usersettings import UserSettings
 
 
 class UserSettingsAdmin(admin.ModelAdmin):
-    list_display = ['user_id', 'name', 'link', 'channel__names']
+    list_display = ['user_id', 'username', 'user_fullname', 'channel__names', 'modified', 'created']
     list_filter = ['channels']
 
     def channel__names(self, obj):
@@ -17,7 +17,7 @@ admin.site.register(UserSettings, UserSettingsAdmin)
 
 
 class ChannelSettingsAdmin(admin.ModelAdmin):
-    list_display = ['channel_id', 'name', 'added_by', 'caption_small', 'reactions']
+    list_display = ['channel_id', 'name', 'added_by', 'caption_small', 'reactions', 'modified', 'created']
     list_filter = ['added_by', 'users']
 
     def caption_small(self, obj):
@@ -30,7 +30,7 @@ admin.site.register(ChannelSettings, ChannelSettingsAdmin)
 
 
 class ReactionsAdmin(admin.ModelAdmin):
-    list_display = ['reaction', 'message', 'channel__name', 'users__count']
+    list_display = ['reaction', 'message', 'channel__name', 'users__count', 'created']
     list_filter = ['message', 'channel', 'users']
 
     def channel__name(self, obj):
