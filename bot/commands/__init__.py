@@ -47,10 +47,13 @@ class BaseCommand:
         if header and footer:
             raise AttributeError('header and footer are mutually exclusive')
         if header:
+            logger.debug('Register start button [header]')
             BaseCommand._start_buttons[0].append(name)
         elif footer:
+            logger.debug('Register start button [main]')
             BaseCommand._start_buttons[2].append(name)
         else:
+            logger.debug('Register start button [footer]')
             BaseCommand._start_buttons[1].append(name)
 
     @staticmethod
@@ -91,10 +94,13 @@ class BaseCommand:
     def command_wrapper(handler: Type[Handler] or Handler = None, names: str or List[str] = None,
                         is_async: bool = False, **kwargs):
         global _plugin_group_index, _messagehandler_group_index
+        logger.debug(f'Register new command: handler={handler}, names={names}, async={is_async}, kwargs={kwargs}')
 
         def outer_wrapper(func):
             @wraps(func)
             def wrapper(*inner_args, **inner_kwargs):
+                logger.debug(
+                    f'Command called: handler={handler}, names={names}, async={is_async}, kwargs={kwargs}, inner_args={inner_args}, inner_kargs={inner_kwargs}')
                 method_class = get_class_that_defined_method(func)
 
                 if (inner_args and isinstance(inner_args[0], method_class)) \
