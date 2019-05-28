@@ -1,4 +1,3 @@
-from django.template.loader import get_template
 from telegram import Chat, InlineKeyboardButton, ReplyKeyboardMarkup
 from telegram.error import Unauthorized
 from telegram.ext import CallbackQueryHandler, Filters, MessageHandler
@@ -11,6 +10,8 @@ from bot.utils.chat import build_menu, channel_selector_menu, check_bot_permissi
 
 
 class ChannelManager(BaseCommand):
+    BaseCommand.register_start_button('Settings')
+
     @BaseCommand.command_wrapper(MessageHandler, is_async=True, filters=Filters.forwarded & (~ OwnFilters.in_channel))
     def add_channel(self):
         possible_channel = self.message.forward_from_chat
@@ -38,26 +39,6 @@ class ChannelManager(BaseCommand):
 
         channel.save(auto_update=True)
         self.message.reply_text(message)
-
-    @BaseCommand.command_wrapper(CallbackQueryHandler, pattern='^(home|cancel)$')
-    @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.text_is(['cancel', 'home', 'reset'], lower=True))
-    @BaseCommand.command_wrapper(names=['start', 'reset', 'cancel'])
-    def start(self):
-        if self.update.callback_query:
-            self.update.callback_query.answer()
-            self.message.delete()
-
-        elif 'start' in self.message.text:
-            self.message.reply_html(get_template('commands/manager/start.html').render())
-
-        if self.message.text.lower() in ['cancel', 'home', 'reset'] and self.user_settings.state != UserSettings.IDLE:
-            self.message.reply_text('Current action was cancelled')
-
-        self.user_settings.current_channel = None
-        self.user_settings.state = UserSettings.IDLE
-
-        buttons = build_menu('Auto Caption', 'Reactions', footer_buttons=['Settings'])
-        self.message.reply_text('What do you want to do?', reply_markup=ReplyKeyboardMarkup(buttons))
 
     @BaseCommand.command_wrapper(MessageHandler,
                                  filters=(OwnFilters.text_is('Settings') & OwnFilters.state_is(UserSettings.IDLE)) |
@@ -99,7 +80,7 @@ class ChannelManager(BaseCommand):
         buttons = ReplyKeyboardMarkup(build_menu('Remove', footer_buttons=['Back', 'Cancel']))
         self.message.reply_text(f'Settings for {self.user_settings.current_channel.name}', reply_markup=buttons)
 
-    @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.text_is('R  emove') &
+    @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.text_is('Remove') &
                                                          OwnFilters.state_is(UserSettings.CHANNEL_SETTINGS_MENU))
     def remove_channel_confirm_dialog(self):
         self.user_settings.state = UserSettings.PRE_REMOVE_CHANNEL
@@ -114,4 +95,4 @@ class ChannelManager(BaseCommand):
         elif self.message.text.lower() != 'no':
             self.message.reply_text('Either hit yes or no')
             return
-        self.start()
+        self.home()

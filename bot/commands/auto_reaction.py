@@ -14,6 +14,7 @@ from bot.utils.chat import build_menu, channel_selector_menu
 
 
 class AutoReaction(BaseCommand):
+    BaseCommand.register_start_button('Auto Caption')
 
     def __init__(self, bot: Bot, update: Update, *args, **kwargs):
         super().__init__(bot, update, *args, **kwargs)

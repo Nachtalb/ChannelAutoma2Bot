@@ -10,6 +10,8 @@ from bot.utils.chat import build_menu, channel_selector_menu, is_media_message
 
 
 class AutoCaption(BaseCommand):
+    BaseCommand.register_start_button('Reactions')
+
     @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.in_channel & (Filters.text | OwnFilters.is_media))
     def auto_caption(self):
         try:
