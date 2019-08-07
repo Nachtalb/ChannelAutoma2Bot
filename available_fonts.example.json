@@ -1,0 +1,62 @@
+{
+  "linux": {
+    "default": {
+      "name": "DejaVu Sans",
+      "path": "DejaVuSans.ttf"
+    },
+    "arial": {
+      "name": "Arial",
+      "path": "arial.ttf"
+    },
+    "tannenbaum": {
+      "name": "Tannenbaum",
+      "path": "TannenbaumNormal.ttf"
+    },
+    "dejavu_sans": {
+      "name": "DejaVu Sans",
+      "path": "DejaVuSans.ttf"
+    },
+    "dejavu_sans_mono": {
+      "name": "DejaVu Sans Mono",
+      "path": "DejaVuSansMono.ttf"
+    },
+    "dejavu_serif_mono": {
+      "name": "DejaVu Serif",
+      "path": "DejaVuSerif.ttf"
+    },
+    "lato_thin": {
+      "name": "Lato Thin",
+      "path": "Lato-Thin.ttf"
+    },
+    "lato_heavy": {
+      "name": "Lato Heavy",
+      "path": "Lato-Heavy.ttf"
+    },
+    "lato_italic": {
+      "name": "Lato Italic",
+      "path": "Lato-Italic.ttf"
+    },
+    "webdings": {
+      "name": "Webdings",
+      "path": ".ttf"
+    }
+  },
+  "darwin": {
+    "default": {
+      "name": "Arial",
+      "path": "/Library/Fonts/Arial.ttf"
+    },
+    "arial": {
+      "name": "Arial",
+      "path": "/Library/Fonts/Arial.ttf"
+    },
+    "tannenbaum": {
+      "name": "Tannenbaum",
+      "path": "/Users/bernd/Library/Fonts/TannenbaumNormal.ttf"
+    },
+    "webdings": {
+      "name": "Webdings",
+      "path": "/Library/Fonts/Webdings.ttf"
+    }
+  }
+}

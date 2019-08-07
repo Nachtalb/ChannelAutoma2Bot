@@ -91,6 +91,8 @@ class Base(Configuration):
     MEDIA_ROOT = (BASE_PATH / 'media').as_posix()
     MEDIA_URL = '/media/'
 
+    AVAILABLE_FONTS = os.environ['AVAILABLE_FONTS']
+
 
 class Production(Base):
     DEBUG = False

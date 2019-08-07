@@ -261,3 +261,4 @@ static/*
 !static/.gitkeep
 media/*
 !media/.gitkeep
+available_fonts.json

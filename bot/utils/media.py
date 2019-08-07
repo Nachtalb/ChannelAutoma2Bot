@@ -1,24 +1,27 @@
+import json
 import sys
 from pathlib import Path
-from typing import Tuple, IO
+from typing import IO, Tuple
 
 from PIL import Image, ImageDraw, ImageFont
+from django.conf import settings
 
-available_fonts = {
-    'default': {
-        'darwin': '/Library/Fonts/Arial.ttf',
-        'linux': 'DejaVuSans.ttf',
-    },
-    'arial': {
-        'darwin': '/Library/Fonts/Arial.ttf',
-        'linux': 'Arial.ttf',
-    }
-}
+available_fonts = {}
+fonts_info_file = settings.AVAILABLE_FONTS
 
+with open(fonts_info_file) as file:
+    fonts_info = json.load(file)
 
-def get_font_path(font_name: str):
-    font_name = font_name or 'default'
-    return available_fonts.get(font_name.lower(), {}).get(sys.platform)
+for font_id, values in fonts_info.get(sys.platform, {}).items():
+    try:
+        ImageFont.truetype(values['path'], 14)
+        available_fonts[font_id] = values
+    except OSError:
+        continue
+
+if 'default' not in available_fonts:
+    raise OSError('Default font not defined or not available')
+
 
 def watermark_text(in_image: IO or str or Path,
                    out_buffer: IO or str or Path,
@@ -30,7 +33,10 @@ def watermark_text(in_image: IO or str or Path,
                    font_size: int = None):
     pos = pos or (0, 0)
     colour = colour or (0, 0, 0)
-    font_path = get_font_path(font_name)
+    if font_name and font_name not in available_fonts:
+        raise KeyError(f'Font "{font_name}" not available')
+    font_name = font_name or 'default'
+    font_path = available_fonts.get(font_name, available_fonts['default'])['path']
     font_size = font_size or 20
 
     if not isinstance(out_buffer, (str, Path)) and not file_extension:
