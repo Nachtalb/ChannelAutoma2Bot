@@ -5,15 +5,19 @@ from typing import Tuple, IO
 from PIL import Image, ImageDraw, ImageFont
 
 available_fonts = {
+    'default': {
+        'darwin': '/Library/Fonts/Arial.ttf',
+        'linux': 'DejaVuSans.ttf',
+    },
     'arial': {
         'darwin': '/Library/Fonts/Arial.ttf',
-        'linux': '/Library/Fonts/Arial.ttf',
+        'linux': 'Arial.ttf',
     }
 }
 
 
 def get_font_path(font_name: str):
-    font_name = font_name or 'arial'
+    font_name = font_name or 'default'
     return available_fonts.get(font_name.lower(), {}).get(sys.platform)
 
 def watermark_text(in_image: IO or str or Path,
