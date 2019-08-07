@@ -17,12 +17,19 @@ admin.site.register(UserSettings, UserSettingsAdmin)
 
 
 class ChannelSettingsAdmin(admin.ModelAdmin):
-    list_display = ['channel_id', 'name', 'added_by', 'caption_small', 'reactions', 'modified', 'created']
+    list_display = [
+        'channel_id', 'name', 'added_by', 'caption_small', 'image_caption_small', 'reactions', 'modified', 'created'
+    ]
 
     def caption_small(self, obj):
         if not obj.caption:
             return None
         return f'{obj.caption[:100]}...'
+
+    def image_caption_small(self, obj):
+        if not obj.image_caption:
+            return None
+        return f'{obj.image_caption[:100]}...'
 
 
 admin.site.register(ChannelSettings, ChannelSettingsAdmin)

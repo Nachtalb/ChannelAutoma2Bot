@@ -19,6 +19,7 @@ class ChannelSettings(TimeStampedModel):
     users = models.ManyToManyField('UserSettings', related_name='channels', blank=True)
 
     caption = models.fields.TextField(blank=True, null=True)
+    image_caption = models.fields.TextField(blank=True, null=True)
     _reactions = models.fields.TextField(blank=True, null=True)
 
     def __str__(self):
