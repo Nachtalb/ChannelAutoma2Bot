@@ -14,12 +14,13 @@ class UserSettings(TimeStampedModel):
     SET_CAPTION = 'set caption'
     SET_IMAGE_CAPTION_MENU = 'set image caption menu'
     SET_IMAGE_CAPTION = 'set image caption'
+    SET_IMAGE_CAPTION_NEXT = 'set image caption next'
     SETTINGS_MENU = 'settings menu'
     CHANNEL_SETTINGS_MENU = 'channel settings menu'
     PRE_REMOVE_CHANNEL = 'pre remove channel'
 
     STATES = (IDLE, SET_CAPTION_MENU, SET_CAPTION, SETTINGS_MENU, CHANNEL_SETTINGS_MENU, PRE_REMOVE_CHANNEL,
-              SET_REACTIONS_MENU, SET_REACTIONS, SET_IMAGE_CAPTION_MENU, SET_IMAGE_CAPTION)
+              SET_REACTIONS_MENU, SET_REACTIONS, SET_IMAGE_CAPTION_MENU, SET_IMAGE_CAPTION, SET_IMAGE_CAPTION_NEXT)
 
     user_id = models.fields.BigIntegerField(primary_key=True)
     _user: User = None  # Actual telegram User object

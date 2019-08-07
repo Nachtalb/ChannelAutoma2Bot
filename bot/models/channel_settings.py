@@ -20,6 +20,20 @@ class ChannelSettings(TimeStampedModel):
 
     caption = models.fields.TextField(blank=True, null=True)
     image_caption = models.fields.TextField(blank=True, null=True)
+    image_caption_direction = models.fields.CharField(
+        default='nw',
+        choices=[
+            ('n', 'North'),
+            ('nw', 'North-west'),
+            ('w', 'West'),
+            ('sw', 'South-west'),
+            ('s', 'South'),
+            ('se', 'South-east'),
+            ('e', 'East'),
+            ('ne', 'North-east')
+        ],
+        max_length=2
+    )
     _reactions = models.fields.TextField(blank=True, null=True)
 
     def __str__(self):
