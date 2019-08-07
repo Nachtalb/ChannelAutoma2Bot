@@ -37,7 +37,7 @@ class Filters:
             name = 'Filters.text_is'
 
             def filter(self, message):
-                if lower:
+                if lower and message.text:
                     return message.text.lower() in texts
                 return message.text in texts
 
