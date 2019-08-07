@@ -3,7 +3,6 @@ from django.db import models
 from django_extensions.db.models import TimeStampedModel
 from telegram import User
 
-from bot.telegrambot import my_bot
 from bot.utils.internal import bot_not_running_protect
 
 
@@ -77,6 +76,7 @@ class UserSettings(TimeStampedModel):
     @property
     @bot_not_running_protect
     def user(self) -> User:
+        from bot.telegrambot import my_bot
         if not self._user:
             self._user = my_bot.bot.get_chat(self.user_id)
         return self._user

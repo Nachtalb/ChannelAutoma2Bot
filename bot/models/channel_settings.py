@@ -7,7 +7,6 @@ from django.dispatch import receiver
 from django_extensions.db.models import TimeStampedModel
 from telegram import Chat
 
-from bot.telegrambot import my_bot
 from bot.utils.internal import bot_not_running_protect
 
 
@@ -32,6 +31,7 @@ class ChannelSettings(TimeStampedModel):
     @property
     @bot_not_running_protect
     def chat(self) -> Chat:
+        from bot.telegrambot import my_bot
         return my_bot.bot.get_chat(self.channel_id)
 
     def save(self, **kwargs):

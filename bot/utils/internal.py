@@ -3,8 +3,6 @@ import logging
 from functools import wraps
 from typing import Callable, Type
 
-from bot.telegrambot import my_bot
-
 bot_not_running_protect_logger = logging.getLogger('bot_not_running_protect')
 
 
@@ -14,6 +12,7 @@ def bot_not_running_protect(func):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
+        from bot.telegrambot import my_bot
         if my_bot is None:
             bot_not_running_protect_logger.info(f'Bot not running, protected: {func}')
             return
