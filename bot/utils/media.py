@@ -22,17 +22,31 @@ for font_id, values in fonts_info.get(sys.platform, {}).items():
 if 'default' not in available_fonts:
     raise OSError('Default font not defined or not available')
 
+def get_text_position(position: str, image_size: Tuple[int, int], text_size: Tuple[int, int]):
+    x = 5
+    if position in 'ns':
+        x = (image_size[0] - text_size[0]) // 2
+    elif position in 'nese':
+        x = image_size[0] - text_size[0] - 5
+
+    y = 5
+    if position in 'we':
+        y = (image_size[1] - text_size[1]) // 2
+    elif position in 'swse':
+        y = image_size[1] - text_size[1] - 5
+
+    return x, y
+
 
 def watermark_text(in_image: IO or str or Path,
                    out_buffer: IO or str or Path,
                    text: str,
                    file_extension: str = None,
-                   pos: Tuple[int, int] = None,
+                   pos: Tuple[int, int] or str = None,
                    colour: Tuple[int, int, int] = None,
                    font_name: str = None,
                    font_size: int = None,
                    font_size_percentage: int = None):
-    pos = pos or (0, 0)
     colour = colour or (0, 0, 0)
     if font_name and font_name not in available_fonts:
         raise KeyError(f'Font "{font_name}" not available')
@@ -59,7 +73,16 @@ def watermark_text(in_image: IO or str or Path,
     else:
         font = ImageFont.truetype(font_path, font_size)
 
-    drawing.text(pos, text, fill=colour, font=font)
+    real_pos = pos or (0, 0)
+    align = 'left'
+    if isinstance(pos, str):
+        real_pos = get_text_position(pos, photo.size, drawing.multiline_textsize(text, font))
+        if pos in 'ns':
+            align = 'center'
+        elif pos in 'nese':
+            align = 'right'
+
+    drawing.text(real_pos, text, fill=colour, font=font, align=align)
     photo.save(out_buffer, format='webp', lossless=True)
 
     if hasattr(out_buffer, 'seek'):
