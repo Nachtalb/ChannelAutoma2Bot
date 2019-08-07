@@ -1,4 +1,5 @@
 from django.template.loader import get_template
+from django.utils.safestring import mark_safe
 from telegram import ParseMode, ReplyKeyboardMarkup
 from telegram.ext import CallbackQueryHandler, Filters, MessageHandler
 
@@ -18,12 +19,12 @@ class AutoCaption(BaseCommand):
             return
 
         caption = self.channel_settings.caption
-        if self.message.text and not self.message.text.strip().endswith(caption):
-            self.message.edit_text(f'{self.message.text_markdown}\n\n{caption}', parse_mode=ParseMode.MARKDOWN)
+        if self.message.text and not self.message.text_html.strip().endswith(caption.strip()):
+            self.message.edit_text(f'{self.message.text_html}\n\n{caption}', parse_mode=ParseMode.HTML)
         if is_media_message(self.message) and (self.message.caption is None
                                                or not self.message.caption.endswith(caption)):
-            self.message.edit_caption(caption=f'{self.message.caption_markdown or ""}\n\n{caption}',
-                                      parse_mode=ParseMode.MARKDOWN)
+            self.message.edit_caption(caption=f'{self.message.caption_html or ""}\n\n{caption}',
+                                      parse_mode=ParseMode.HTML)
 
     @BaseCommand.command_wrapper(MessageHandler,
                                  filters=OwnFilters.text_is('Auto Caption') & OwnFilters.state_is(UserSettings.IDLE))
@@ -42,7 +43,7 @@ class AutoCaption(BaseCommand):
 
     @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.state_is(UserSettings.SET_CAPTION))
     def set_caption(self):
-        caption = self.message.text_markdown
+        caption = self.message.text_html.strip()
 
         if not caption:
             self.message.reply_text('You have to send me some text.')
@@ -59,7 +60,7 @@ class AutoCaption(BaseCommand):
         if not caption:
             message = f'Caption for {self.user_settings.current_channel.name} cleared'
 
-        self.message.reply_markdown(message, reply_markup=ReplyKeyboardMarkup([['Home']]))
+        self.message.reply_html(message, reply_markup=ReplyKeyboardMarkup([['Home']]))
 
     @BaseCommand.command_wrapper(CallbackQueryHandler, pattern='^change_caption:.*$')
     def pre_set_caption(self):
@@ -78,7 +79,7 @@ class AutoCaption(BaseCommand):
 
         message = get_template('commands/auto_caption/new.html').render({
             'channel_name': self.user_settings.current_channel.name,
-            'current_caption': self.user_settings.current_channel.caption,
+            'current_caption': mark_safe(self.user_settings.current_channel.caption),
         })
 
         self.message.reply_html(message, reply_markup=ReplyKeyboardMarkup(build_menu('Clear', 'Cancel')))
