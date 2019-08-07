@@ -26,7 +26,11 @@ class ChannelSettings(TimeStampedModel):
 
     @property
     def name(self) -> str:
-        return self.channel_title or '@' + self.channel_username
+        if self.channel_title:
+            return self.channel_title
+        elif self.channel_username:
+            return f'@{self.channel_username}'
+        return str(self.channel_id)
 
     @property
     @bot_not_running_protect
