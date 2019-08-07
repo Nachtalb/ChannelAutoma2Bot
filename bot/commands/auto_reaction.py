@@ -14,7 +14,7 @@ from bot.utils.chat import build_menu, channel_selector_menu
 
 
 class AutoReaction(BaseCommand):
-    BaseCommand.register_start_button('Auto Caption')
+    BaseCommand.register_start_button('Reactions')
 
     @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.in_channel & (Filters.text | OwnFilters.is_media))
     def auto_reaction(self):
