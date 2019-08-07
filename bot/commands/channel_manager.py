@@ -58,16 +58,17 @@ class ChannelManager(BaseCommand):
 
     @BaseCommand.command_wrapper(CallbackQueryHandler, pattern='^update_channels$')
     def update_channels(self):
-        self.update.callback_query.answer()
         channels = self.user_settings.channels.all()
         if not channels:
             self.message.reply_text('No channels added yet.')
             return
 
         for channel in channels:
-            channel.auto_update_values()
+            if not channel.auto_update_values():
+                self.message.reply_text(f'Channel {channel.name} could not be updated')
 
         self.message.reply_text('Channels updated')
+        self.update.callback_query.answer()
 
     @BaseCommand.command_wrapper(CallbackQueryHandler, pattern='^change_settings_menu:.*$')
     def channel_settings_menu(self):
