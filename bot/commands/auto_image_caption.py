@@ -39,10 +39,14 @@ class AutoImageCaption(BaseCommand):
 
         watermark_text(in_image=image_in, out_buffer=image_out, text=image_caption, file_extension=extension)
 
+        caption_args = {}
+        if caption or self.message.caption:
+            caption_args['caption'] = f'{self.message.caption_html or ""}\n\n{caption}'
+            caption_args['parse_mode'] = ParseMode.HTML
+
         self.message.edit_media(InputMediaPhoto(
             image_out,
-            caption=f'{self.message.caption_html or ""}\n\n{caption}',
-            parse_mode=ParseMode.HTML
+            **caption_args
         ))
 
     @BaseCommand.command_wrapper(MessageHandler,
