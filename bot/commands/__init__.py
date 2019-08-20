@@ -126,7 +126,7 @@ class BaseCommand:
                     _kwargs = {}
 
                 if is_async:
-                    run_async(func(*_args, **_kwargs))
+                    run_async(func)(*_args, **_kwargs)
                 else:
                     func(*_args, **_kwargs)
 
