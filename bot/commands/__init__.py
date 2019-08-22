@@ -84,7 +84,7 @@ class BaseCommand:
         logger.debug(f'Check home method {home}')
         home_class = get_class_that_defined_method(home)
 
-        if BaseCommand not in home_class.__bases__:
+        if BaseCommand not in home_class.__mro__:
             raise AttributeError('Home method must be a method of a BaseCommand inheriting class.')
 
         for name, parameter in inspect.signature(home).parameters.items():
@@ -117,7 +117,7 @@ class BaseCommand:
                     return func(*inner_args, **inner_kwargs)
 
                 _args, _kwargs = inner_args, inner_kwargs
-                if method_class and BaseCommand in method_class.__bases__:
+                if method_class and BaseCommand in method_class.__mro__:
                     try:
                         instance = method_class(*inner_args, **inner_kwargs)
                     except CancelOperation:
@@ -143,7 +143,8 @@ __all__ = []
 for loader, module_name, is_pkg in pkgutil.walk_packages(__path__):
     _plugin_group_index += 1
     __all__.append(module_name)
-    _module = loader.find_module(module_name).load_module(module_name)
-    globals()[module_name] = _module
+    if module_name not in globals():
+        _module = loader.find_module(module_name).load_module(module_name)
+        globals()[module_name] = _module
 
 BaseCommand._check_home_class()
