@@ -26,14 +26,17 @@ class AutoEdit(BaseCommand):
         new_reply_markup = self.new_reply_buttons()
 
         if self.needs_new_image():
-            self.message.edit_media(self.new_image(self.new_caption(), ParseMode.HTML), reply_markup=new_reply_markup)
+            self.message.edit_media(self.new_image(self.new_caption(), ParseMode.HTML), reply_markup=new_reply_markup,
+                                    timeout=30)
             return
 
         if not self.message.effective_attachment:
-            self.message.edit_text(text=new_caption, parse_mode=ParseMode.HTML, reply_markup=new_reply_markup)
+            self.message.edit_text(text=new_caption, parse_mode=ParseMode.HTML, reply_markup=new_reply_markup,
+                                   timeout=30)
             return
 
-        self.message.edit_caption(caption=new_caption, parse_mode=ParseMode.HTML, reply_markup=new_reply_markup)
+        self.message.edit_caption(caption=new_caption, parse_mode=ParseMode.HTML, reply_markup=new_reply_markup,
+                                  timeout=30)
 
     def new_caption(self) -> str or None:
         if not self.channel_settings.caption:
