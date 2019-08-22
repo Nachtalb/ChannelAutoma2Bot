@@ -1,11 +1,10 @@
-from typing import List, Tuple
-
 import emoji as emoji
 from django.template.loader import get_template
-from telegram import Bot, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, Update
-from telegram.ext import CallbackQueryHandler, Filters, MessageHandler
+from telegram import CallbackQuery, ReplyKeyboardMarkup
+from telegram.ext import CallbackQueryHandler, MessageHandler
 
 from bot.commands import BaseCommand
+from bot.commands.auto_edit import AutoEdit
 from bot.filters import Filters as OwnFilters
 from bot.models.channel_settings import ChannelSettings
 from bot.models.reactions import Reaction
@@ -13,33 +12,8 @@ from bot.models.usersettings import UserSettings
 from bot.utils.chat import build_menu, channel_selector_menu
 
 
-class AutoReaction(BaseCommand):
+class AutoReaction(AutoEdit):
     BaseCommand.register_start_button('Reactions')
-
-    @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.in_channel & (Filters.text | OwnFilters.is_media))
-    def auto_reaction(self):
-        if not self.channel_settings or not self.channel_settings.reactions:
-            return
-
-        reactions = self.get_reactions(self.channel_settings)
-        buttons = []
-        for emoji, total in reactions:
-            if not total:
-                text = emoji
-            else:
-                text = f'{emoji} {total}'
-            buttons.append(InlineKeyboardButton(text, callback_data=f'reaction:{self.message.message_id}:{emoji}'))
-        self.message.edit_reply_markup(reply_markup=InlineKeyboardMarkup([buttons]))
-
-    def get_reactions(self, channel: ChannelSettings) -> List[Tuple[str, int]]:
-        result = []
-        for emoji in channel.reactions:
-            try:
-                reaction = Reaction.objects.get(reaction=emoji, message=self.message.message_id, channel=self.channel_settings)
-            except Reaction.DoesNotExist:
-                reaction = Reaction.objects.create(reaction=emoji, message=self.message.message_id, channel=self.channel_settings)
-            result.append((emoji, reaction.users.count()))
-        return result
 
     @BaseCommand.command_wrapper(CallbackQueryHandler, pattern='^reaction:.*')
     def update_reaction(self):
@@ -65,7 +39,8 @@ class AutoReaction(BaseCommand):
         clicked.users.add(self.user_settings)
         clicked.save()
         query.answer(f'You reacted with {emoji}')
-        self.auto_reaction()
+
+        self.message.edit_reply_markup(reply_markup=self.new_reply_buttons())
 
     @BaseCommand.command_wrapper(MessageHandler,
                                  filters=OwnFilters.text_is('Reactions') & OwnFilters.state_is(UserSettings.IDLE))

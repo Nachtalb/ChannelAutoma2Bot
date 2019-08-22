@@ -1,30 +1,18 @@
 from django.template.loader import get_template
 from django.utils.safestring import mark_safe
-from telegram import ParseMode, ReplyKeyboardMarkup
-from telegram.ext import CallbackQueryHandler, Filters, MessageHandler
+from telegram import ReplyKeyboardMarkup
+from telegram.ext import CallbackQueryHandler, MessageHandler
 
 from bot.commands import BaseCommand
+from bot.commands.auto_edit import AutoEdit
 from bot.filters import Filters as OwnFilters
 from bot.models.channel_settings import ChannelSettings
 from bot.models.usersettings import UserSettings
-from bot.utils.chat import build_menu, channel_selector_menu, is_media_message
+from bot.utils.chat import build_menu, channel_selector_menu
 
 
-class AutoCaption(BaseCommand):
+class AutoCaption(AutoEdit):
     BaseCommand.register_start_button('Auto Caption')
-
-    @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.in_channel & (Filters.text | OwnFilters.is_media))
-    def auto_caption(self):
-        if not self.channel_settings or not self.channel_settings.caption:
-            return
-
-        caption = self.channel_settings.caption
-        if self.message.text and not self.message.text_html.strip().endswith(caption.strip()):
-            self.message.edit_text(f'{self.message.text_html}\n\n{caption}', parse_mode=ParseMode.HTML)
-        if is_media_message(self.message) and (self.message.caption is None
-                                               or not self.message.caption.endswith(caption)):
-            self.message.edit_caption(caption=f'{self.message.caption_html or ""}\n\n{caption}',
-                                      parse_mode=ParseMode.HTML)
 
     @BaseCommand.command_wrapper(MessageHandler,
                                  filters=OwnFilters.text_is('Auto Caption') & OwnFilters.state_is(UserSettings.IDLE))

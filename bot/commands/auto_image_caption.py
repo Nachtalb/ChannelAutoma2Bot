@@ -1,60 +1,17 @@
-import os
-from io import BytesIO
-
 from django.template.loader import get_template
-from telegram import File, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto, ParseMode, PhotoSize, ReplyKeyboardMarkup
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
 from telegram.ext import CallbackQueryHandler, MessageHandler
 
 from bot.commands import BaseCommand
+from bot.commands.auto_edit import AutoEdit
 from bot.filters import Filters as OwnFilters
 from bot.models.channel_settings import ChannelSettings
 from bot.models.usersettings import UserSettings
 from bot.utils.chat import build_menu, channel_selector_menu
-from bot.utils.media import watermark_text
 
 
-class AutoImageCaption(BaseCommand):
+class AutoImageCaption(AutoEdit):
     BaseCommand.register_start_button('Image Caption')
-
-    @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.in_channel & (OwnFilters.is_media))
-    def auto_caption(self):
-        attachment = self.message.effective_attachment
-        if isinstance(attachment, list):
-            attachment = attachment[-1]
-
-        if not self.channel_settings or \
-                not self.channel_settings.image_caption or \
-                not isinstance(attachment, PhotoSize):
-            return
-
-        image_caption = self.channel_settings.image_caption
-        direction = self.channel_settings.image_caption_direction
-        caption = self.channel_settings.caption
-        file: File = attachment.get_file()
-
-        extension = os.path.splitext(file.file_path)[1].strip('.')
-
-        image_in = BytesIO()
-        image_out = BytesIO()
-        file.download(out=image_in)
-
-        watermark_text(
-            in_image=image_in,
-            out_buffer=image_out,
-            text=image_caption,
-            file_extension=extension,
-            pos=direction,
-        )
-
-        caption_args = {}
-        if caption or self.message.caption:
-            caption_args['caption'] = f'{self.message.caption_html or ""}\n\n{caption}'
-            caption_args['parse_mode'] = ParseMode.HTML
-
-        self.message.edit_media(InputMediaPhoto(
-            image_out,
-            **caption_args
-        ))
 
     @BaseCommand.command_wrapper(MessageHandler,
                                  filters=OwnFilters.text_is('Image Caption') & OwnFilters.state_is(UserSettings.IDLE))
