@@ -22,14 +22,14 @@ class ChannelSettingsAdmin(admin.ModelAdmin):
     ]
 
     def caption_small(self, obj):
-        if not obj.caption:
-            return None
-        return f'{obj.caption[:100]}...'
+        if not obj.caption or len(obj.caption) <= 100:
+            return obj.caption
+        return f'{obj.caption[:100]} ...'
 
     def image_caption_small(self, obj):
-        if not obj.image_caption:
-            return None
-        return f'{obj.image_caption[:100]}...'
+        if not obj.image_caption or len(obj.image_caption) <= 100:
+            return obj.image_caption
+        return f'{obj.image_caption[:100]} ...'
 
 
 admin.site.register(ChannelSettings, ChannelSettingsAdmin)
