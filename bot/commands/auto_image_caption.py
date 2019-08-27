@@ -1,3 +1,7 @@
+from io import BytesIO
+from random import choice
+
+from PIL import Image, ImageDraw, ImageFont
 from django.template.loader import get_template
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
 from telegram.ext import CallbackQueryHandler, MessageHandler
@@ -8,10 +12,36 @@ from bot.filters import Filters as OwnFilters
 from bot.models.channel_settings import ChannelSettings
 from bot.models.usersettings import UserSettings
 from bot.utils.chat import build_menu, channel_selector_menu
+from bot.utils.media import Fonts
 
 
 class AutoImageCaption(AutoEdit):
     BaseCommand.register_start_button('Image Caption')
+
+    panagrams = (
+        'Jived fox nymph grabs quick waltz.',
+        'Glib jocks quiz nymph to vex dwarf.',
+        'Sphinx of black quartz, judge my vow.',
+        'How vexingly quick daft zebras jump!',
+        'The five boxing wizards jump quickly.',
+        'Pack my box with five dozen liquor jugs.',
+    )
+
+    def sample_image(self, font_name: str = None, text: str = None) -> BytesIO:
+        text = text or choice(self.panagrams)
+
+        font = ImageFont.truetype(str(Fonts.get_font(font_name).path), 50)
+        width, height = font.getsize(text)
+
+        image = Image.new('RGB', (width + 20, height + 20), color=(255, 255, 255))
+        draw = ImageDraw.Draw(image)
+
+        draw.text((10, 10), text, font=font, fill=(0, 0, 0))
+
+        out = BytesIO()
+        image.save(out, 'png')
+        out.seek(0)
+        return out
 
     @BaseCommand.command_wrapper(MessageHandler,
                                  filters=OwnFilters.text_is('Image Caption') & OwnFilters.state_is(UserSettings.IDLE))
@@ -120,6 +150,10 @@ class AutoImageCaption(AutoEdit):
         if self.user_settings.current_channel.image_caption_font == new_font:
             self.update.callback_query.answer('You are already using this font')
             return
+
+        text = choice(self.panagrams)
+        image = self.sample_image(new_font, text)
+        self.message.reply_photo(image, caption=text)
 
         self.user_settings.current_channel.image_caption_font = new_font
         self.user_settings.save()
