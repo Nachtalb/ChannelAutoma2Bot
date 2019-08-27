@@ -1,26 +1,51 @@
 import json
 import sys
+from dataclasses import dataclass
 from pathlib import Path
-from typing import IO, Tuple
+from typing import IO, Tuple, Dict
 
 from PIL import Image, ImageDraw, ImageFont
 from django.conf import settings
 
-available_fonts = {}
-fonts_info_file = settings.AVAILABLE_FONTS
 
-with open(fonts_info_file) as file:
-    fonts_info = json.load(file)
+@dataclass
+class Font:
+    id: str
+    name: str
+    path: Path
 
-for font_id, values in fonts_info.get(sys.platform, {}).items():
-    try:
-        ImageFont.truetype(values['path'], 14)
-        available_fonts[font_id] = values
-    except OSError:
-        continue
 
-if 'default' not in available_fonts:
-    raise OSError('Default font not defined or not available')
+class _Fonts:
+    def __init__(self):
+        available_fonts = {}
+        fonts_info_file = settings.AVAILABLE_FONTS
+
+        with open(fonts_info_file) as file:
+            fonts_info = json.load(file)
+
+        sys_fonts = fonts_info.get(sys.platform, {})
+        for font_id, values in sys_fonts.get('fonts', {}).items():
+            try:
+                ImageFont.truetype(values['path'], 14)
+                available_fonts[font_id] = Font(name=values['name'], path=Path(values['path']), id=font_id)
+            except OSError:
+                continue
+
+        if 'default' not in sys_fonts or sys_fonts['default'] not in available_fonts:
+            raise OSError('Default font not defined or not available')
+
+        self.default_font: Font = available_fonts[sys_fonts['default']]
+        self.available_fonts: Dict[Font] = available_fonts
+
+    def __getitem__(self, name: str) -> Font:
+        return self.get_font(name)
+
+    def get_font(self, font_name: str = None, fallback: str = None) -> Font:
+        return self.available_fonts.get(font_name, fallback) or self.default_font
+
+
+Fonts = _Fonts()
+
 
 def get_text_position(position: str, image_size: Tuple[int, int], text_size: Tuple[int, int]):
     x = 5
@@ -48,10 +73,7 @@ def watermark_text(in_image: IO or str or Path,
                    font_size: int = None,
                    font_size_percentage: int = None):
     colour = colour or (0, 0, 0)
-    if font_name and font_name not in available_fonts:
-        raise KeyError(f'Font "{font_name}" not available')
-    font_name = font_name or 'default'
-    font_path = available_fonts.get(font_name, available_fonts['default'])['path']
+    font_path = str(Fonts.get_font(font_name).path)
 
     if not isinstance(out_buffer, (str, Path)) and not file_extension:
         raise AttributeError('If out_image is a Buffer file_extension must be set')
