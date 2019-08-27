@@ -20,6 +20,7 @@ class ChannelSettings(TimeStampedModel):
 
     caption = models.fields.TextField(blank=True, null=True)
     image_caption = models.fields.TextField(blank=True, null=True)
+    image_caption_font = models.fields.TextField(default='default')
     image_caption_direction = models.fields.CharField(
         default='nw',
         choices=[
