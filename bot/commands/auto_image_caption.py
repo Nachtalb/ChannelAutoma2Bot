@@ -58,6 +58,8 @@ class AutoImageCaption(AutoEdit):
                 InlineKeyboardButton('Change Caption', callback_data='change_image_caption'),
                 InlineKeyboardButton('Change Position', callback_data='change_image_caption_position'),
             ], [
+                InlineKeyboardButton('Change Font', callback_data='change_image_caption_font'),
+            ], [
                 InlineKeyboardButton('Home', callback_data='home'),
             ]])
         }
@@ -87,6 +89,42 @@ class AutoImageCaption(AutoEdit):
                 InlineKeyboardButton('Back', callback_data='next_action:'),
             ]])
         )
+
+    @BaseCommand.command_wrapper(CallbackQueryHandler, pattern='^change_image_caption_font$')
+    def pre_image_caption_font(self):
+        current_font = self.user_settings.current_channel.image_caption_font
+        if current_font == 'default':
+            current_font = Fonts.get_font().id
+
+        buttons = []
+        for font_id, font in Fonts.available_fonts.items():
+            txt = font.name
+            if font_id == current_font:
+                txt = f'[{txt}]'
+            buttons.append(InlineKeyboardButton(txt, callback_data=f'set_image_caption_font:{font_id}'))
+
+        menu = build_menu(*buttons, cols=2, footer_buttons=[InlineKeyboardButton('Back', callback_data='next_action:')])
+        self.message.edit_text(
+            'Which font do you want?',
+            reply_markup=InlineKeyboardMarkup(menu)
+        )
+
+    @BaseCommand.command_wrapper(CallbackQueryHandler, pattern='^set_image_caption_font:.*$')
+    def set_image_caption_font(self):
+        if not self.user_settings.current_channel:
+            self.update.callback_query.answer()
+            self.message.delete()
+            return
+
+        new_font = self.update.callback_query.data.split(':')[1]
+        if self.user_settings.current_channel.image_caption_font == new_font:
+            self.update.callback_query.answer('You are already using this font')
+            return
+
+        self.user_settings.current_channel.image_caption_font = new_font
+        self.user_settings.save()
+        self.update.callback_query.answer('Font changed')
+        self.pre_image_caption_font()
 
     @BaseCommand.command_wrapper(CallbackQueryHandler, pattern='^set_image_caption_position:.*$')
     def set_image_caption_position(self):
