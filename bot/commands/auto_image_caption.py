@@ -156,7 +156,7 @@ class AutoImageCaption(AutoEdit):
         self.message.reply_photo(image, caption=text)
 
         self.user_settings.current_channel.image_caption_font = new_font
-        self.user_settings.save()
+        self.user_settings.current_channel.save()
         self.update.callback_query.answer('Font changed')
         self.pre_image_caption_font()
 
