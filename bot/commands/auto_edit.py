@@ -43,7 +43,7 @@ class AutoEdit(BaseCommand):
             return
 
         caption = (self.channel_settings.caption or '').strip()
-        text = (self.message.text_html or self.message.caption or '').strip()
+        text = (self.message.text_html or self.message.caption_html or '').strip()
 
         if text.endswith(caption):
             return None
