@@ -3,7 +3,7 @@ from random import choice
 
 from PIL import Image, ImageDraw, ImageFont
 from django.template.loader import get_template
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, ParseMode
 from telegram.ext import CallbackQueryHandler, MessageHandler
 
 from bot.commands import BaseCommand
@@ -12,7 +12,7 @@ from bot.filters import Filters as OwnFilters
 from bot.models.channel_settings import ChannelSettings
 from bot.models.usersettings import UserSettings
 from bot.utils.chat import build_menu, channel_selector_menu
-from bot.utils.media import Fonts
+from bot.utils.media import Fonts, Font
 
 
 class AutoImageCaption(AutoEdit):
@@ -27,16 +27,17 @@ class AutoImageCaption(AutoEdit):
         'Pack my box with five dozen liquor jugs.',
     )
 
-    def sample_image(self, font_name: str = None, text: str = None) -> BytesIO:
+    def sample_image(self, font: str or Font = None, text: str = None) -> BytesIO:
         text = text or choice(self.panagrams)
+        font_path = str((font if isinstance(font, Font) else Fonts.get_font(font)).path)
 
-        font = ImageFont.truetype(str(Fonts.get_font(font_name).path), 50)
-        width, height = font.getsize(text)
+        ttf_font = ImageFont.truetype(font_path, 50)
+        width, height = ttf_font.getsize(text)
 
         image = Image.new('RGB', (width + 20, height + 20), color=(255, 255, 255))
         draw = ImageDraw.Draw(image)
 
-        draw.text((10, 10), text, font=font, fill=(0, 0, 0))
+        draw.text((10, 10), text, font=ttf_font, fill=(0, 0, 0))
 
         out = BytesIO()
         image.save(out, 'png')
@@ -152,11 +153,14 @@ class AutoImageCaption(AutoEdit):
             self.update.callback_query.answer('You are already using this font')
             return
 
-        text = choice(self.panagrams)
-        image = self.sample_image(new_font, text)
-        self.message.reply_photo(image, caption=text)
+        font = Fonts.get_font(new_font)
 
-        self.user_settings.current_channel.image_caption_font = new_font
+        text = choice(self.panagrams)
+        image = self.sample_image(font, text)
+        self.message.reply_photo(image, caption=f'Font set to "<code>{font.name}</code>"\nAbove text "<code>{text}</code>"',
+                                 parse_mode=ParseMode.HTML)
+
+        self.user_settings.current_channel.image_caption_font = font.id
         self.user_settings.current_channel.save()
         self.update.callback_query.answer('Font changed')
         self.pre_image_caption_font()

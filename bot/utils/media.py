@@ -69,11 +69,11 @@ def watermark_text(in_image: IO or str or Path,
                    file_extension: str = None,
                    pos: Tuple[int, int] or str = None,
                    colour: Tuple[int, int, int] = None,
-                   font_name: str = None,
+                   font: str or Font = None,
                    font_size: int = None,
                    font_size_percentage: int = None):
     colour = colour or (0, 0, 0)
-    font_path = str(Fonts.get_font(font_name).path)
+    font_path = str((font if isinstance(font, Font) else Fonts.get_font(font)).path)
 
     if not isinstance(out_buffer, (str, Path)) and not file_extension:
         raise AttributeError('If out_image is a Buffer file_extension must be set')

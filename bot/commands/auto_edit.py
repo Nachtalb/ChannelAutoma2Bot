@@ -79,7 +79,7 @@ class AutoEdit(BaseCommand):
             text=image_caption,
             file_extension=extension,
             pos=direction,
-            font_name=self.channel_settings.image_caption_font,
+            font=self.channel_settings.image_caption_font,
         )
 
         return image_out
