@@ -1,4 +1,4 @@
-from telegram import Chat, InlineKeyboardButton, ReplyKeyboardMarkup
+from telegram import Chat, InlineKeyboardButton, ReplyKeyboardMarkup, ParseMode
 from telegram.error import Unauthorized
 from telegram.ext import CallbackQueryHandler, Filters, MessageHandler
 
@@ -26,13 +26,17 @@ class ChannelManager(BaseCommand):
             self.message.reply_text(f'Error: {e.message}')
             return
 
+        created = False
         try:
-            message = 'Channel was updated'
             channel = ChannelSettings.objects.get(channel_id=possible_channel.id)
         except ChannelSettings.DoesNotExist:
+            channel = ChannelSettings.objects.create(channel_id=possible_channel.id, added_by=self.user_settings)
+            created = True
+
+        if created or self.user_settings not in channel.users.all():
             message = 'Channel was added'
-            channel = ChannelSettings.objects.create(channel_id=possible_channel.id,
-                                                     added_by=self.user_settings)
+        else:
+            message = 'Channel was updated'
 
         if self.user_settings not in channel.users.all():
             channel.users.add(self.user_settings)
@@ -85,13 +89,23 @@ class ChannelManager(BaseCommand):
                                                          OwnFilters.state_is(UserSettings.CHANNEL_SETTINGS_MENU))
     def remove_channel_confirm_dialog(self):
         self.user_settings.state = UserSettings.PRE_REMOVE_CHANNEL
-        self.message.reply_text(f'Are you sure you want to remove: {self.user_settings.current_channel.name}?',
-                                reply_markup=ReplyKeyboardMarkup(build_menu('Yes', 'No')))
+        self.message.reply_text(f'Are you sure you want to remove {self.user_settings.current_channel.chat.link}?\n'
+                                f'<b>Attention:</b>\n'
+                                f'In case this channel is not managed by an another admin via this bot, the not will:\n'
+                                f'- Stop adding captions\n'
+                                f'- Stop adding image captions\n'
+                                f'- Stop adding reactions\n'
+                                f'- Still be updating reactions as long as the bot is in the channel\n',
+                                reply_markup=ReplyKeyboardMarkup(build_menu('Yes', 'No')),
+                                parse_mode=ParseMode.HTML)
 
     @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.state_is(UserSettings.PRE_REMOVE_CHANNEL))
     def remove_channel_confirmation(self):
         if self.message.text.lower() == 'yes':
-            self.user_settings.channels.remove(self.user_settings.current_channel)
+            channel = self.user_settings.current_channel
+            self.user_settings.channels.remove(channel)
+            if not channel.users.count():
+                channel.partial_reset()
             self.message.reply_text('Channel was removed')
         elif self.message.text.lower() != 'no':
             self.message.reply_text('Either hit yes or no')

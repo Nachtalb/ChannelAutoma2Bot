@@ -79,8 +79,15 @@ class ChannelSettings(TimeStampedModel):
     def reactions(self, value: List[str]):
         self._reactions = json.dumps(value or [])
 
+    def partial_reset(self):
+        self.image_caption = None
+        self.caption = None
+        self.image_caption_direction = 'nw'
+        self.image_caption_font = 'default'
+        self.save()
+
 
 @receiver(pre_save)
 def fill_user_if_necessary(sender, instance, *args, **kwargs):
-    if isinstance(instance, ChannelSettings) and (instance.added_by and not instance.users):
+    if isinstance(instance, ChannelSettings) and (getattr(instance, 'added_by', None) and not instance.users):
         instance.users.add(instance.added_by)
