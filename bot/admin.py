@@ -37,7 +37,7 @@ admin.site.register(ChannelSettings, ChannelSettingsAdmin)
 
 class ReactionsAdmin(admin.ModelAdmin):
     list_display = ['reaction', 'message', 'channel__name', 'users__count', 'created']
-    list_filter = ['message', 'channel']
+    list_filter = ['channel']
 
     def channel__name(self, obj):
         return obj.channel.name
