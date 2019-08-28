@@ -31,7 +31,8 @@ class ChannelSettings(TimeStampedModel):
             ('s', 'South'),
             ('se', 'South-east'),
             ('e', 'East'),
-            ('ne', 'North-east')
+            ('ne', 'North-east'),
+            ('c', 'Center'),
         ],
         max_length=2
     )

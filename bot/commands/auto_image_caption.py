@@ -110,6 +110,7 @@ class AutoImageCaption(AutoEdit):
                 InlineKeyboardButton('[NE]' if 'ne' == direction else 'NE', callback_data='set_image_caption_position:ne'),
             ], [
                 InlineKeyboardButton('[W]' if 'w' == direction else 'W', callback_data='set_image_caption_position:w'),
+                InlineKeyboardButton('[C]' if 'c' == direction else 'C', callback_data='set_image_caption_position:c'),
                 InlineKeyboardButton('[E]' if 'e' == direction else 'E', callback_data='set_image_caption_position:e'),
             ], [
                 InlineKeyboardButton('[SW]' if 'sw' == direction else 'SW', callback_data='set_image_caption_position:sw'),

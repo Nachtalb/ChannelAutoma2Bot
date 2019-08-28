@@ -49,13 +49,13 @@ Fonts = _Fonts()
 
 def get_text_position(position: str, image_size: Tuple[int, int], text_size: Tuple[int, int]):
     x = 5
-    if position in 'ns':
+    if position in 'nsc':
         x = (image_size[0] - text_size[0]) // 2
     elif position in 'nese':
         x = image_size[0] - text_size[0] - 5
 
     y = 5
-    if position in 'we':
+    if position in 'wec':
         y = (image_size[1] - text_size[1]) // 2
     elif position in 'swse':
         y = image_size[1] - text_size[1] - 5
