@@ -8,6 +8,7 @@ from django_extensions.db.models import TimeStampedModel
 from telegram import Chat
 
 from bot.utils.internal import bot_not_running_protect
+from bot.utils.media import Fonts
 
 
 class ChannelSettings(TimeStampedModel):
@@ -20,7 +21,8 @@ class ChannelSettings(TimeStampedModel):
 
     caption = models.fields.TextField(blank=True, null=True)
     image_caption = models.fields.TextField(blank=True, null=True)
-    image_caption_font = models.fields.TextField(default='default')
+    image_caption_font = models.fields.TextField(
+        default='default', help_text=f'Available fonts: {", ".join(map(lambda font: f"<code>{font}</code>", Fonts))}')
     image_caption_direction = models.fields.CharField(
         default='nw',
         choices=[
