@@ -16,7 +16,7 @@ class Font:
     path: Path
 
 
-class _Fonts:
+class _Fonts(dict):
     def __init__(self):
         available_fonts = {}
         fonts_info_file = settings.AVAILABLE_FONTS
@@ -36,10 +36,14 @@ class _Fonts:
             raise OSError('Default font not defined or not available')
 
         self.default_font: Font = available_fonts[sys_fonts['default']]
-        self.available_fonts: Dict[Font] = available_fonts
+        self.available_fonts: Dict[str, Font] = available_fonts
+        super(_Fonts, self).__init__(self.available_fonts)
 
     def __getitem__(self, name: str) -> Font:
         return self.get_font(name)
+
+    def get(self, font: str) -> Font:
+        return self.get_font(font)
 
     def get_font(self, font_name: str = None, fallback: str = None) -> Font:
         return self.available_fonts.get(font_name, fallback) or self.default_font
