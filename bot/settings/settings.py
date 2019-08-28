@@ -101,8 +101,8 @@ class Production(Base):
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': 'channel_automa_prod',
-            'USER': os.environ.get('DJANGO_DB_USER'),
-            'PASSWORD': os.environ.get('DJANGO_DB_PASSWD'),
+            'USER': os.environ.get('DJANGO_DB_USER', ),
+            'PASSWORD': os.environ.get('DJANGO_DB_PASSWD', ),
             'HOST': 'localhost',
             'PORT': '5432',
         }
@@ -111,7 +111,7 @@ class Production(Base):
     # Telegram Bot
     DJANGO_TELEGRAMBOT = {
         'MODE': 'WEBHOOK',
-        'WEBHOOK_SITE': os.environ.get('DJANGO_WEBSITE'),
+        'WEBHOOK_SITE': os.environ.get('DJANGO_WEBSITE', ),
         'WEBHOOK_PREFIX': 'webhook/',
         'STRICT_INIT': True,
 
