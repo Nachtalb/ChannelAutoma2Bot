@@ -42,6 +42,14 @@ class UserSettings(TimeStampedModel):
     def __str__(self):
         return f'{self.user_id}@{self.username}'
 
+    @property
+    def name(self) -> str:
+        if self.username:
+            return f'@{self.username}'
+        elif self.user_fullname:
+            return self.user_fullname
+        return str(self.user_id)
+
     def save(self, **kwargs):
         if kwargs.get('auto_update', False):
             self.auto_update_values(save=False)

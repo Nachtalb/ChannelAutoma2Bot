@@ -45,10 +45,10 @@ class ChannelSettings(TimeStampedModel):
 
     @property
     def name(self) -> str:
-        if self.channel_title:
-            return self.channel_title
-        elif self.channel_username:
+        if self.channel_username:
             return f'@{self.channel_username}'
+        elif self.channel_title:
+            return self.channel_title
         return str(self.channel_id)
 
     @property
