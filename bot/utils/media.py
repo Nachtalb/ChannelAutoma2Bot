@@ -1,10 +1,11 @@
 import json
+import math
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import IO, Tuple, Dict
+from typing import Dict, IO, Tuple
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageStat
 from django.conf import settings
 
 
@@ -63,6 +64,12 @@ def get_text_position(position: str, image_size: Tuple[int, int], text_size: Tup
     return x, y
 
 
+def image_brightness(image: Image) -> float:
+    stat = ImageStat.Stat(image)
+    r, g, b = stat.mean
+    return math.sqrt(0.241 * (r ** 2) + 0.691 * (g ** 2) + 0.068 * (b ** 2))
+
+
 def watermark_text(in_image: IO or str or Path,
                    out_buffer: IO or str or Path,
                    text: str,
@@ -72,7 +79,6 @@ def watermark_text(in_image: IO or str or Path,
                    font: str or Font = None,
                    font_size: int = None,
                    font_size_percentage: int = None):
-    colour = colour or (0, 0, 0)
     font_path = str((font if isinstance(font, Font) else Fonts.get_font(font)).path)
 
     if not isinstance(out_buffer, (str, Path)) and not file_extension:
@@ -96,13 +102,22 @@ def watermark_text(in_image: IO or str or Path,
         font = ImageFont.truetype(font_path, font_size)
 
     real_pos = pos or (0, 0)
+    text_size = drawing.multiline_textsize(text, font)
     align = 'left'
     if isinstance(pos, str):
-        real_pos = get_text_position(pos, photo.size, drawing.multiline_textsize(text, font))
+        real_pos = get_text_position(pos, photo.size, text_size)
         if pos in 'ns':
             align = 'center'
         elif pos in 'nese':
             align = 'right'
+
+    if not colour:
+        cropped = photo.crop((*real_pos, real_pos[0] + text_size[0], real_pos[1] + text_size[1]))
+        brightness = image_brightness(cropped)
+        if brightness > 120:
+            colour = (0, 0, 0)
+        else:
+            colour = (255, 255, 255)
 
     drawing.text(real_pos, text, fill=colour, font=font, align=align)
     photo.save(out_buffer, format='webp', lossless=True)
