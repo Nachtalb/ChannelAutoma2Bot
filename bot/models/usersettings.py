@@ -39,6 +39,8 @@ class UserSettings(TimeStampedModel):
     username = models.fields.CharField(max_length=200, blank=True, null=True)
     user_fullname = models.fields.CharField(max_length=200)
 
+    zombie = models.fields.BooleanField(default=False)
+
     def __str__(self):
         return f'{self.user_id}@{self.username}'
 
@@ -87,7 +89,17 @@ class UserSettings(TimeStampedModel):
     @property
     @bot_not_running_protect
     def user(self) -> User:
+        if self.zombie:
+            return None
         from bot.telegrambot import my_bot
         if not self._user:
-            self._user = my_bot.bot.get_chat(self.user_id)
+            try:
+                self._user = my_bot.bot.get_chat(self.user_id)
+            except (Unauthorized, BadRequest):
+                self.zombie = True
+                self.save(update_fields=['zombie'])
+                print('{} | "{}" marked as zombie'.format(self.user_id, self.username))
+                return None
+            except:
+                return None
         return self._user

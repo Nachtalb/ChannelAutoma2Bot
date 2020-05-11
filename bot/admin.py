@@ -39,8 +39,8 @@ class UserSettingsAdmin(admin.ModelAdmin):
         return
 
     def username_tg(self, obj: UserSettings) -> SafeText or str:
-        if obj.user and obj.user.link:
-            return format_html(link_template, link=obj.user.link, text=obj.name, target='_blank')
+        # if obj.user and obj.user.link:
+        #     return format_html(link_template, link=obj.user.link, text=obj.name, target='_blank')
         return obj
 
     def channel__names(self, obj: UserSettings) -> SafeText:

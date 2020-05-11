@@ -6,6 +6,8 @@ from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django_extensions.db.models import TimeStampedModel
 from telegram import Chat
+from telegram.error import Unauthorized, BadRequest
+
 
 from bot.utils.internal import bot_not_running_protect
 from bot.utils.media import Fonts
@@ -39,6 +41,7 @@ class ChannelSettings(TimeStampedModel):
         max_length=2
     )
     _reactions = models.fields.TextField(blank=True, null=True)
+    zombie = models.fields.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.channel_id}:{self.name}'
@@ -54,8 +57,18 @@ class ChannelSettings(TimeStampedModel):
     @property
     @bot_not_running_protect
     def chat(self) -> Chat:
+        if self.zombie:
+            return None
         from bot.telegrambot import my_bot
-        return my_bot.bot.get_chat(self.channel_id)
+        try:
+            return my_bot.bot.get_chat(self.channel_id)
+        except (Unauthorized, BadRequest):
+            self.zombie = True
+            self.save(update_fields=['zombie'])
+            print('{} | "{}" marked as zombie'.format(self.channel_id, self.channel_title))
+            return None
+        except:
+            return None
 
     def save(self, **kwargs):
         if kwargs.get('auto_update', False):

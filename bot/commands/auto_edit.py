@@ -39,14 +39,11 @@ class AutoEdit(BaseCommand):
                                   timeout=30)
 
     def new_caption(self) -> str or None:
-        if not self.channel_settings.caption:
-            return
-
         caption = (self.channel_settings.caption or '').strip()
         text = (self.message.text_html or self.message.caption_html or '').strip()
 
         if text.endswith(caption):
-            return None
+            return text
         return f'{text}\n\n{caption}'
 
     def needs_new_image(self) -> bool:
