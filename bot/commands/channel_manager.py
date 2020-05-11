@@ -89,7 +89,9 @@ class ChannelManager(BaseCommand):
                                                          OwnFilters.state_is(UserSettings.CHANNEL_SETTINGS_MENU))
     def remove_channel_confirm_dialog(self):
         self.user_settings.state = UserSettings.PRE_REMOVE_CHANNEL
-        self.message.reply_text(f'Are you sure you want to remove {self.user_settings.current_channel.chat.link}?\n'
+        channel = self.user_settings.current_channel
+        link = channel.chat.link if channel.chat else channel.channel_title
+        self.message.reply_text(f'Are you sure you want to remove {link}?\n'
                                 f'<b>Attention:</b>\n'
                                 f'In case this channel is not managed by an another admin via this bot, the not will:\n'
                                 f'- Stop adding captions\n'

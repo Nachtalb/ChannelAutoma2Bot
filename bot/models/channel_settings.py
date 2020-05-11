@@ -1,6 +1,7 @@
 import json
 from typing import List
 
+from cached_property import cached_property_ttl
 from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
@@ -101,6 +102,12 @@ class ChannelSettings(TimeStampedModel):
         self.image_caption_direction = 'nw'
         self.image_caption_font = 'default'
         self.save()
+
+    @cached_property_ttl(ttl=3600)
+    @bot_not_running_protect
+    def link(self) -> str:
+        link = self.chat.link or self.chat.invite_link or self.chat.bot.export_chat_invite_link(self.chat.id)
+        return f'<a href="{link}">{self.name}</a>'
 
 
 @receiver(pre_save)
