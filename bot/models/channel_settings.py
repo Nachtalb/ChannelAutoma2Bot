@@ -22,6 +22,11 @@ class ChannelSettings(TimeStampedModel):
     added_by = models.ForeignKey('UserSettings', on_delete=models.DO_NOTHING)
     users = models.ManyToManyField('UserSettings', related_name='channels', blank=True)
 
+    forward_to = models.ForeignKey('ChannelSettings',
+            related_name='forward_from',
+            on_delete=models.DO_NOTHING,
+            blank=True,
+            null=True)
     caption = models.fields.TextField(blank=True, null=True)
     image_caption = models.fields.TextField(blank=True, null=True)
     image_caption_font = models.fields.TextField(
@@ -43,6 +48,9 @@ class ChannelSettings(TimeStampedModel):
     )
     _reactions = models.fields.TextField(blank=True, null=True)
     zombie = models.fields.BooleanField(default=False)
+
+    def __int__(self):
+        return self.channel_id
 
     def __str__(self):
         return f'{self.channel_id}:{self.name}'
