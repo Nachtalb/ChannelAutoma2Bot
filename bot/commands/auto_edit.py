@@ -4,6 +4,7 @@ from typing import Generator, Tuple
 
 from telegram import File, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto, ParseMode, PhotoSize
 from telegram.ext import Filters, MessageHandler
+from telegram.error import TimedOut
 
 from bot.commands import BaseCommand
 from bot.filters import Filters as OwnFilters
@@ -21,22 +22,31 @@ class AutoEdit(BaseCommand):
                 not self.channel_settings.image_caption and
                 not self.channel_settings.reactions
         ):
+            self.forward_message()
             return
         new_caption = self.new_caption()
         new_reply_markup = self.new_reply_buttons()
+        try:
+            if self.needs_new_image():
+                self.message.edit_media(self.new_image(self.new_caption(), ParseMode.HTML), reply_markup=new_reply_markup,
+                                        timeout=60)
+            elif not self.message.effective_attachment:
+                self.message.edit_text(text=new_caption, parse_mode=ParseMode.HTML, reply_markup=new_reply_markup,
+                                       timeout=60)
+            else:
+                self.message.edit_caption(caption=new_caption, parse_mode=ParseMode.HTML, reply_markup=new_reply_markup,
+                                          timeout=60)
+        except TimedOut:
+            pass
 
-        if self.needs_new_image():
-            self.message.edit_media(self.new_image(self.new_caption(), ParseMode.HTML), reply_markup=new_reply_markup,
-                                    timeout=30)
+        self.forward_message()
+
+    @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.in_channel & (~ (Filters.text | OwnFilters.is_media)),
+                                 is_async=True)
+    def forward_message(self):
+        if not self.channel_settings or not self.channel_settings.forward_to:
             return
-
-        if not self.message.effective_attachment:
-            self.message.edit_text(text=new_caption, parse_mode=ParseMode.HTML, reply_markup=new_reply_markup,
-                                   timeout=30)
-            return
-
-        self.message.edit_caption(caption=new_caption, parse_mode=ParseMode.HTML, reply_markup=new_reply_markup,
-                                  timeout=30)
+        self.message.forward(int(self.channel_settings.forward_to))
 
     def new_caption(self) -> str or None:
         caption = (self.channel_settings.caption or '').strip()
