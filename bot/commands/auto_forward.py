@@ -55,9 +55,11 @@ class AutoForward(AutoEdit):
             connections.append(f'{from_channel.link} :arrow_left: {channel.link}')
 
         if connections:
-            self.message.reply_html(emoji.emojize('Connections:\n- ' + '\n- '.join(connections), use_aliases=True))
+            self.message.reply_html(emoji.emojize('Connections:\n- ' + '\n- '.join(connections), use_aliases=True),
+                    disable_web_page_preview=True)
 
-        self.message.reply_html(f'Forward from {self.user_settings.current_channel.link} to', reply_markup=menu)
+        self.message.reply_html(f'Forward from {self.user_settings.current_channel.link} to', reply_markup=menu,
+                disable_web_page_preview=True)
         self.message.delete()
 
     @BaseCommand.command_wrapper(CallbackQueryHandler, pattern='^forward_to:.*$')
@@ -77,5 +79,6 @@ class AutoForward(AutoEdit):
         from_channel.forward_to = to_channel
         from_channel.save()
 
-        self.message.reply_html(f'Messages from {from_channel.link} are now forwarded to {to_channel.link}')
+        self.message.reply_html(f'Messages from {from_channel.link} are now forwarded to {to_channel.link}',
+                disable_web_page_preview=True)
         self.home()

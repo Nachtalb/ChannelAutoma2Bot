@@ -78,11 +78,12 @@ class AutoReaction(AutoEdit):
             reaction_str = ', '.join(reactions)
 
         message = get_template('commands/auto_reactions/new.html').render({
-            'channel_name': self.user_settings.current_channel.name,
+            'channel_name': self.user_settings.current_channel.link,
             'current_reactions': reaction_str,
         })
 
-        self.message.reply_html(message, reply_markup=ReplyKeyboardMarkup(build_menu('Clear', 'Cancel')))
+        self.message.reply_html(message, reply_markup=ReplyKeyboardMarkup(build_menu('Clear', 'Cancel')),
+                disable_web_page_preview=True)
 
     @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.state_is(UserSettings.SET_REACTIONS))
     def set_reactions(self):

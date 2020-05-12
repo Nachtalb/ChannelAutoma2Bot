@@ -99,7 +99,8 @@ class ChannelManager(BaseCommand):
                                 f'- Stop adding reactions\n'
                                 f'- Still be updating reactions as long as the bot is in the channel\n',
                                 reply_markup=ReplyKeyboardMarkup(build_menu('Yes', 'No')),
-                                parse_mode=ParseMode.HTML)
+                                parse_mode=ParseMode.HTML,
+                                disable_web_page_preview=True)
 
     @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.state_is(UserSettings.PRE_REMOVE_CHANNEL))
     def remove_channel_confirmation(self):
