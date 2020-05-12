@@ -28,25 +28,26 @@ class AutoEdit(BaseCommand):
         new_reply_markup = self.new_reply_buttons()
         try:
             if self.needs_new_image():
-                self.message.edit_media(self.new_image(self.new_caption(), ParseMode.HTML), reply_markup=new_reply_markup,
+                new_message = self.message.edit_media(self.new_image(self.new_caption(), ParseMode.HTML), reply_markup=new_reply_markup,
                                         timeout=60)
             elif not self.message.effective_attachment:
-                self.message.edit_text(text=new_caption, parse_mode=ParseMode.HTML, reply_markup=new_reply_markup,
+                new_message = self.message.edit_text(text=new_caption, parse_mode=ParseMode.HTML, reply_markup=new_reply_markup,
                                        timeout=60)
             else:
-                self.message.edit_caption(caption=new_caption, parse_mode=ParseMode.HTML, reply_markup=new_reply_markup,
+                new_message = self.message.edit_caption(caption=new_caption, parse_mode=ParseMode.HTML, reply_markup=new_reply_markup,
                                           timeout=60)
         except TimedOut:
-            pass
+            new_message = None
 
-        self.forward_message()
+        self.forward_message(new_message)
 
     @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.in_channel & (~ (Filters.text | OwnFilters.is_media)),
                                  is_async=True)
-    def forward_message(self):
+    def forward_message(self, message=None):
         if not self.channel_settings or not self.channel_settings.forward_to:
             return
-        self.message.forward(int(self.channel_settings.forward_to))
+        message = message or self.message
+        message.forward(int(self.channel_settings.forward_to))
 
     def new_caption(self) -> str or None:
         caption = (self.channel_settings.caption or '').strip()
