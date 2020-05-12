@@ -45,7 +45,7 @@ class UserSettings(TimeStampedModel):
     zombie = models.fields.BooleanField(default=False)
 
     def __str__(self):
-        return f'{self.user_id}@{self.username}'
+        return f'{self.name} ({self.user_id})'
 
     @property
     def name(self) -> str:
