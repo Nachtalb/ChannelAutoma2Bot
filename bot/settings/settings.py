@@ -121,7 +121,7 @@ class Production(Base):
                 'TOKEN': os.environ['TELEGRAM_TOKEN'],
                 'MESSAGEQUEUE_ENABLED': True,
                 'ASYNC_WORKERS': 16,
-                'MESSAGEQUEUE_REQUEST_CON_POOL_SIZE': 32,
+                'ON_POOL_SIZE': 32,
             },
         ],
 
@@ -155,7 +155,7 @@ class Development(Base):
                 'TOKEN': os.environ['TELEGRAM_TOKEN'],
                 'MESSAGEQUEUE_ENABLED': True,
                 'ASYNC_WORKERS': 16,
-                'MESSAGEQUEUE_REQUEST_CON_POOL_SIZE': 32,
+                'ON_POOL_SIZE': 32,
             },
         ],
 
