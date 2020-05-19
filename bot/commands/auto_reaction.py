@@ -1,7 +1,10 @@
+from time import sleep
+
 import emoji as emoji
 from django.template.loader import get_template
 from telegram import CallbackQuery, ReplyKeyboardMarkup
 from telegram.ext import CallbackQueryHandler, MessageHandler
+from telegram.error import TimedOut, RetryAfter, BadRequest
 
 from bot.commands import BaseCommand
 from bot.commands.auto_edit import AutoEdit
@@ -40,7 +43,17 @@ class AutoReaction(AutoEdit):
         clicked.save()
         query.answer(f'You reacted with {emoji}')
 
-        self.message.edit_reply_markup(reply_markup=self.new_reply_buttons())
+        while True:
+            try:
+                self.message.edit_reply_markup(reply_markup=self.new_reply_buttons(), timeout=60).result()
+            except TimedOut:
+                continue
+            except RetryAfter as e:
+                sleep(e.retry_after)
+                continue
+            except BadRequest:
+                pass
+            break
 
     @BaseCommand.command_wrapper(MessageHandler,
                                  filters=OwnFilters.text_is('Reactions') & OwnFilters.state_is(UserSettings.IDLE))
