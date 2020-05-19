@@ -125,10 +125,14 @@ class BaseCommand:
                     _args = [instance]
                     _kwargs = {}
 
-                if is_async:
-                    run_async(func)(*_args, **_kwargs)
-                else:
-                    func(*_args, **_kwargs)
+                try:
+                    if is_async:
+                        run_async(func)(*_args, **_kwargs)
+                    else:
+                        func(*_args, **_kwargs)
+                except Exception as e:
+                    logger.exception(e)
+                    raise e
 
             kwargs.setdefault('group', _plugin_group_index)
             my_bot.add_command(handler=handler, names=names, func=wrapper, **kwargs)
