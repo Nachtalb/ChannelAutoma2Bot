@@ -99,6 +99,7 @@ class AutoEdit(BaseCommand):
         image_in = BytesIO()
         image_out = BytesIO()
         file.download(out=image_in)
+        alpha = int(self.channel_settings.image_caption_alpha / 100 * 255)
 
         watermark_text(
             in_image=image_in,
@@ -107,7 +108,7 @@ class AutoEdit(BaseCommand):
             file_extension=extension,
             pos=direction,
             font=self.channel_settings.image_caption_font,
-            alpha=self.channel_settings.image_caption_alpha,
+            alpha=alpha,
         )
 
         return image_out
