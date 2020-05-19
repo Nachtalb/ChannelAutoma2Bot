@@ -70,7 +70,7 @@ def get_text_position(position: str, image_size: Tuple[int, int], text_size: Tup
 
 def image_brightness(image: Image) -> float:
     stat = ImageStat.Stat(image)
-    r, g, b = stat.mean
+    r, g, b, a = stat.mean
     return math.sqrt(0.241 * (r ** 2) + 0.691 * (g ** 2) + 0.068 * (b ** 2))
 
 
@@ -82,14 +82,15 @@ def watermark_text(in_image: IO or str or Path,
                    colour: Tuple[int, int, int] = None,
                    font: str or Font = None,
                    font_size: int = None,
-                   font_size_percentage: int = None):
+                   font_size_percentage: int = None,
+                   alpha: int = None):
     font_path = str((font if isinstance(font, Font) else Fonts.get_font(font)).path)
-
     if not isinstance(out_buffer, (str, Path)) and not file_extension:
         raise AttributeError('If out_image is a Buffer file_extension must be set')
 
-    photo = Image.open(in_image)
-    drawing = ImageDraw.Draw(photo)
+    photo = Image.open(in_image).convert('RGBA')
+    txt = Image.new('RGBA', photo.size, (255, 255, 255, 0))
+    drawing = ImageDraw.Draw(txt)
 
     if not font_size or font_size_percentage:
         font_size_percentage = font_size_percentage or 50
@@ -119,12 +120,13 @@ def watermark_text(in_image: IO or str or Path,
         cropped = photo.crop((*real_pos, real_pos[0] + text_size[0], real_pos[1] + text_size[1]))
         brightness = image_brightness(cropped)
         if brightness > 120:
-            colour = (0, 0, 0)
+            colour = (0, 0, 0, alpha)
         else:
-            colour = (255, 255, 255)
+            colour = (255, 255, 255, alpha)
 
     drawing.text(real_pos, text, fill=colour, font=font, align=align)
-    photo.save(out_buffer, format='webp', lossless=True)
+    out = Image.alpha_composite(photo, txt)
+    out.save(out_buffer, format='png', lossless=True)
 
     if hasattr(out_buffer, 'seek'):
         out_buffer.seek(0)

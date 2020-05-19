@@ -61,7 +61,7 @@ class AutoImageCaption(AutoEdit):
 
     @BaseCommand.command_wrapper(CallbackQueryHandler, pattern='^next_action:.*$')
     @BaseCommand.command_wrapper(MessageHandler,
-                                 filters=OwnFilters.state_is(UserSettings.SET_IMAGE_CAPTION) &
+                                 filters=(OwnFilters.state_is(UserSettings.SET_IMAGE_CAPTION) | OwnFilters.state_is(UserSettings.SET_IMAGE_CAPTION_ALPHA)) &
                                          OwnFilters.text_is('back', lower=True))
     def next_action(self):
         if not self.user_settings.current_channel:
@@ -86,10 +86,11 @@ class AutoImageCaption(AutoEdit):
         kwargs = {
             'text': 'What do you want to do?',
             'reply_markup': InlineKeyboardMarkup([[
-                InlineKeyboardButton('Change Caption', callback_data='change_image_caption'),
-                InlineKeyboardButton('Change Position', callback_data='change_image_caption_position'),
+                InlineKeyboardButton('Caption', callback_data='change_image_caption'),
+                InlineKeyboardButton('Position', callback_data='change_image_caption_position'),
             ], [
-                InlineKeyboardButton('Change Font', callback_data='change_image_caption_font'),
+                InlineKeyboardButton('Font', callback_data='change_image_caption_font'),
+                InlineKeyboardButton('Opacity', callback_data='change_image_caption_alpha'),
             ], [
                 InlineKeyboardButton('Home', callback_data='home'),
             ]])
@@ -201,7 +202,7 @@ class AutoImageCaption(AutoEdit):
 
         self.message.reply_text(message, reply_markup=ReplyKeyboardMarkup([['Home', 'Back']], one_time_keyboard=True))
 
-    @BaseCommand.command_wrapper(CallbackQueryHandler, pattern='change_image_caption')
+    @BaseCommand.command_wrapper(CallbackQueryHandler, pattern='change_image_caption$')
     def pre_set_caption(self):
         member = self.bot.get_chat_member(chat_id=self.user_settings.current_channel.channel_id, user_id=self.user.id)
 
@@ -221,3 +222,44 @@ class AutoImageCaption(AutoEdit):
 
         self.message.reply_html(message, reply_markup=ReplyKeyboardMarkup(build_menu('Clear', 'Back', 'Cancel'),
                                                                           one_time_keyboard=True))
+
+    @BaseCommand.command_wrapper(CallbackQueryHandler, pattern='change_image_caption_alpha')
+    def pre_set_caption_alpha(self):
+        member = self.bot.get_chat_member(chat_id=self.user_settings.current_channel.channel_id, user_id=self.user.id)
+
+        if not member.can_change_info and not member.status == member.CREATOR:
+            self.message.reply_text('You must have change channel info permissions to change the default image caption.')
+            return
+
+        self.user_settings.state = UserSettings.SET_IMAGE_CAPTION_ALPHA
+
+        if self.update.callback_query:
+            self.update.callback_query.answer()
+            self.message.delete()
+
+        message = get_template('commands/auto_image_caption/opacity.html').render({
+            'channel_link': self.user_settings.current_channel.link,
+            'current_alpha': self.user_settings.current_channel.image_caption_alpha,
+        })
+
+        self.message.reply_html(message, reply_markup=ReplyKeyboardMarkup(build_menu('100', '75', '50', '25', 'Back', 'Cancel', cols=4),
+                                                                          one_time_keyboard=True))
+
+    @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.state_is(UserSettings.SET_IMAGE_CAPTION_ALPHA))
+    def set_caption_alpha(self):
+        response = self.message.text.strip()
+
+        try:
+            alpha = int(response)
+            if alpha > 100 or alpha < 0:
+                raise ValueError()
+        except ValueError:
+            self.message.reply_text('You have to give me an integer between 100 and 0')
+            self.pre_set_alpha()
+            return
+
+        self.user_settings.current_channel.image_caption_alpha = alpha
+        self.user_settings.current_channel.save()
+
+        self.message.reply_html(f'The opacity of {self.user_settings.current_channel.link} was set to <pre>{alpha}</pre>')
+        self.pre_set_caption_alpha()

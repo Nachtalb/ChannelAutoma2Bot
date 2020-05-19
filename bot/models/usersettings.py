@@ -15,6 +15,7 @@ class UserSettings(TimeStampedModel):
     SET_IMAGE_CAPTION_MENU = 'set image caption menu'
     SET_IMAGE_CAPTION = 'set image caption'
     SET_IMAGE_CAPTION_NEXT = 'set image caption next'
+    SET_IMAGE_CAPTION_ALPHA = 'set image caption alpha'
     SET_FORWARDER_MENU = 'set forwarder menu'
     SET_FORWARDER_TO = 'set forwarder to'
     SETTINGS_MENU = 'settings menu'
@@ -23,7 +24,7 @@ class UserSettings(TimeStampedModel):
 
     STATES = (IDLE, SET_CAPTION_MENU, SET_CAPTION, SETTINGS_MENU, CHANNEL_SETTINGS_MENU, PRE_REMOVE_CHANNEL,
               SET_REACTIONS_MENU, SET_REACTIONS, SET_IMAGE_CAPTION_MENU, SET_IMAGE_CAPTION, SET_IMAGE_CAPTION_NEXT,
-              SET_FORWARDER_MENU, SET_FORWARDER_TO)
+              SET_FORWARDER_MENU, SET_FORWARDER_TO, SET_IMAGE_CAPTION_ALPHA)
 
     user_id = models.fields.BigIntegerField(primary_key=True)
     _user: User = None  # Actual telegram User object

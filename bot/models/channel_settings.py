@@ -46,6 +46,7 @@ class ChannelSettings(TimeStampedModel):
         ],
         max_length=2
     )
+    image_caption_alpha = models.fields.IntegerField(default=100)
     _reactions = models.fields.TextField(blank=True, null=True)
     zombie = models.fields.BooleanField(default=False)
 
