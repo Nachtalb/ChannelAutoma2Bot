@@ -98,11 +98,17 @@ def watermark_text(in_image: IO or str or Path,
         img_fraction = font_size_percentage / 100
 
         font = ImageFont.truetype(font_path, fontsize)
-        while font.getsize(text)[0] < img_fraction * photo.size[0]:
-            fontsize += 1
+        breakpoint = img_fraction * photo.size[0]
+        jumpsize = 75
+        while True:
+            if font.getsize(text)[0] < breakpoint:
+                fontsize += jumpsize
+            else:
+                jumpsize = int(jumpsize / 2)
+                fontsize -= jumpsize
             font = ImageFont.truetype(font_path, fontsize)
-        fontsize -= 1  # Fontsize shall be one less than defined fraction
-        font = ImageFont.truetype(font_path, fontsize)
+            if jumpsize <= 1:
+                break
     else:
         font = ImageFont.truetype(font_path, font_size)
 
