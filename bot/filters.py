@@ -62,7 +62,10 @@ class Filters:
             def filter(self, message):
                 if not message.from_user:
                     return False
-                user = UserSettings.objects.get(user_id=message.from_user.id)
+                try:
+                    user = UserSettings.objects.get(user_id=message.from_user.id)
+                except UserSettings.DoesNotExist:
+                    return False
                 return user.state == state
 
         return StateIs()
