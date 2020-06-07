@@ -9,6 +9,7 @@ from telegram.ext import Handler, run_async
 
 from bot.models.channel_settings import ChannelSettings
 from bot.models.usersettings import UserSettings
+from bot.models.media_group import MediaGroup
 from bot.telegrambot import my_bot
 from bot.utils.internal import get_class_that_defined_method
 
@@ -48,6 +49,10 @@ class BaseCommand:
             self.channel_settings = ChannelSettings.objects.get(channel_id=self.chat.id)
         except ChannelSettings.DoesNotExist:
             pass
+
+        self.media_group = None
+        if self.message.media_group_id and self.channel_settings:
+            self.media_group = MediaGroup.objects.get_or_create(id=self.message.media_group_id, message_id=self.message.message_id, channel=self.channel_settings)[0]
 
     @staticmethod
     def register_start_button(name: str, header: bool = False, footer: bool = False):

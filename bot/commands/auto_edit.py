@@ -26,31 +26,42 @@ class AutoEdit(BaseCommand):
             self.forward_message()
             return
 
+        edited = None
+        if self.media_group and not self.channel_settings.forward_to:
+            edited = self.media_group.edited
+
         text = (self.message.text_html or self.message.caption_html or '').strip()
         caption = self.new_caption(text)
-        if caption:
+        if caption and not edited:
             text = f'{text}\n\n{caption}'
 
         new_reply_markup = self.new_reply_buttons()
 
         if self.needs_new_image():
             method = self.message.edit_media
-            params = dict(media=self.new_image(text, ParseMode.HTML), reply_markup=new_reply_markup, timeout=60, isgroup=self.channel_settings.channel_id)
-        elif not self.message.effective_attachment and caption:
+            params = dict(media=self.new_image(text, ParseMode.HTML), timeout=60, isgroup=self.channel_settings.channel_id)
+        elif not self.message.effective_attachment and caption and not edited:
             method = self.message.edit_text
-            params = dict(text=text, parse_mode=ParseMode.HTML, reply_markup=new_reply_markup, timeout=60, isgroup=self.channel_settings.channel_id)
-        elif caption:
+            params = dict(text=text, parse_mode=ParseMode.HTML, timeout=60, isgroup=self.channel_settings.channel_id)
+        elif caption and not edited:
             method = self.message.edit_caption
-            params = dict(caption=text, parse_mode=ParseMode.HTML, reply_markup=new_reply_markup, timeout=60, isgroup=self.channel_settings.channel_id)
-        else:
+            params = dict(caption=text, parse_mode=ParseMode.HTML, timeout=60, isgroup=self.channel_settings.channel_id)
+        elif not edited:
             self.forward_message()
             return
+        else:
+            return
+
+        if not edited:
+            params['reply_markup'] = new_reply_markup
 
         new_message = None
         while True:
             try:
                 promis = method(**params)
                 new_message = promis.result()
+                self.media_group.edited = True
+                self.media_group.save()
             except TimedOut:
                 continue
             except RetryAfter as e:

@@ -82,7 +82,7 @@ class ChannelManager(BaseCommand):
         self.user_settings.current_channel_id = channel_id
         self.user_settings.state = UserSettings.CHANNEL_SETTINGS_MENU
 
-        buttons = ReplyKeyboardMarkup(build_menu('Remove', footer_buttons=['Back', 'Cancel']))
+        buttons = ReplyKeyboardMarkup(build_menu('Remove', 'Remove Forwarders', footer_buttons=['Back', 'Cancel']))
         self.message.reply_text(f'Settings for {self.user_settings.current_channel.name}', reply_markup=buttons)
 
     @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.text_is('Remove') &
@@ -101,6 +101,13 @@ class ChannelManager(BaseCommand):
                                 reply_markup=ReplyKeyboardMarkup(build_menu('Yes', 'No')),
                                 parse_mode=ParseMode.HTML,
                                 disable_web_page_preview=True)
+
+    @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.text_is('Remove Forwarders') &
+                                                         OwnFilters.state_is(UserSettings.CHANNEL_SETTINGS_MENU))
+    def remove_forwarders(self):
+        self.user_settings.current_channel.forward_to = None
+        self.user_settings.current_channel.save()
+        self.message.reply_text('Forwarders remvoed')
 
     @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.state_is(UserSettings.PRE_REMOVE_CHANNEL))
     def remove_channel_confirmation(self):
