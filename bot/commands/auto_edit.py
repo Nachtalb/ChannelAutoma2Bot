@@ -25,18 +25,26 @@ class AutoEdit(BaseCommand):
         ):
             self.forward_message()
             return
-        new_caption = self.new_caption()
+
+        text = (self.message.text_html or self.message.caption_html or '').strip()
+        caption = self.new_caption(text)
+        if caption:
+            text = f'{text}\n\n{caption}'
+
         new_reply_markup = self.new_reply_buttons()
 
         if self.needs_new_image():
             method = self.message.edit_media
-            params = dict(media=self.new_image(self.new_caption(), ParseMode.HTML), reply_markup=new_reply_markup, timeout=60, isgroup=self.channel_settings.channel_id)
-        elif not self.message.effective_attachment:
+            params = dict(media=self.new_image(text, ParseMode.HTML), reply_markup=new_reply_markup, timeout=60, isgroup=self.channel_settings.channel_id)
+        elif not self.message.effective_attachment and caption:
             method = self.message.edit_text
-            params = dict(text=new_caption, parse_mode=ParseMode.HTML, reply_markup=new_reply_markup, timeout=60, isgroup=self.channel_settings.channel_id)
-        else:
+            params = dict(text=text, parse_mode=ParseMode.HTML, reply_markup=new_reply_markup, timeout=60, isgroup=self.channel_settings.channel_id)
+        elif caption:
             method = self.message.edit_caption
-            params = dict(caption=new_caption, parse_mode=ParseMode.HTML, reply_markup=new_reply_markup, timeout=60, isgroup=self.channel_settings.channel_id)
+            params = dict(caption=text, parse_mode=ParseMode.HTML, reply_markup=new_reply_markup, timeout=60, isgroup=self.channel_settings.channel_id)
+        else:
+            self.forward_message()
+            return
 
         new_message = None
         while True:
@@ -68,13 +76,12 @@ class AutoEdit(BaseCommand):
                 continue
             break
 
-    def new_caption(self) -> str or None:
+    def new_caption(self, text) -> str or None:
         caption = (self.channel_settings.caption or '').strip()
-        text = (self.message.text_html or self.message.caption_html or '').strip()
 
         if text.endswith(caption):
-            return text
-        return f'{text}\n\n{caption}'
+            return
+        return caption
 
     def needs_new_image(self) -> bool:
         if not self.message.effective_attachment or not isinstance(self.message.effective_attachment, list):
