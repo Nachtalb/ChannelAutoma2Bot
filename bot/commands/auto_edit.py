@@ -18,6 +18,8 @@ class AutoEdit(BaseCommand):
     @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.in_channel & (Filters.text | OwnFilters.is_media),
                                  is_async=True)
     def auto_edit(self):
+        if self.update.edited_message or self.update.edited_channel_post:
+            return
         if not self.channel_settings or (
                 not self.channel_settings.caption and
                 not self.channel_settings.image_caption and
@@ -82,7 +84,7 @@ class AutoEdit(BaseCommand):
     @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.in_channel & (~ (Filters.text | OwnFilters.is_media)),
                                  is_async=True)
     def forward_message(self, message=None):
-        if self.update.edited_message:
+        if self.update.edited_message or self.update.edited_channel_post:
             return
         if not self.channel_settings or not self.channel_settings.forward_to:
             return
