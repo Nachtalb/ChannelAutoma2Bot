@@ -25,6 +25,13 @@ class AutoEdit(BaseCommand):
         ):
             self.forward_message()
             return
+        elif self.message.forward_from_chat:
+            fowarded_from = self.message.forward_from_chat
+            if fowarded_from.id == self.chat.id:
+                return
+            else:
+                self.forward_message()
+                return
 
         edited = None
         if self.media_group and not self.channel_settings.forward_to:
@@ -60,8 +67,9 @@ class AutoEdit(BaseCommand):
             try:
                 promis = method(**params)
                 new_message = promis.result()
-                self.media_group.edited = True
-                self.media_group.save()
+                if self.media_group:
+                    self.media_group.edited = True
+                    self.media_group.save()
             except TimedOut:
                 continue
             except RetryAfter as e:
@@ -74,6 +82,8 @@ class AutoEdit(BaseCommand):
     @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.in_channel & (~ (Filters.text | OwnFilters.is_media)),
                                  is_async=True)
     def forward_message(self, message=None):
+        if self.update.edited_message:
+            return
         if not self.channel_settings or not self.channel_settings.forward_to:
             return
         message = message or self.message
