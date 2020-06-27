@@ -39,12 +39,15 @@ class AutoReaction(AutoEdit):
             reaction.users.remove(self.user_settings)
             reaction.save()
 
-        if not already_clicked:
-            clicked.users.add(self.user_settings)
-            clicked.save()
-            query.answer(f'You reacted with {emoji}')
-        else:
-            query.answer(f'You took your reaction {emoji} back')
+        try:
+            if not already_clicked:
+                clicked.users.add(self.user_settings)
+                clicked.save()
+                query.answer(f'You reacted with {emoji}')
+            else:
+                query.answer(f'You took your reaction {emoji} back')
+        except BadRequest:
+            pass
 
 
         while True:

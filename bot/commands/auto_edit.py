@@ -5,7 +5,7 @@ from time import sleep
 
 from telegram import File, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto, ParseMode, PhotoSize
 from telegram.ext import Filters, MessageHandler
-from telegram.error import TimedOut, RetryAfter, Unauthorized
+from telegram.error import TimedOut, RetryAfter, Unauthorized, BadRequest
 
 from bot.commands import BaseCommand
 from bot.filters import Filters as OwnFilters
@@ -74,6 +74,13 @@ class AutoEdit(BaseCommand):
                 if self.media_group:
                     self.media_group.edited = True
                     self.media_group.save()
+            except Unauthorized:
+                self.leave()
+                pass
+            except BadRequest as e:
+                if e.message == 'Message can\'t be edited':
+                    self.leave()
+                pass
             except TimedOut:
                 continue
             except RetryAfter as e:
@@ -82,6 +89,15 @@ class AutoEdit(BaseCommand):
             break
 
         self.forward_message(new_message)
+
+    def leave(self):
+        self.chat.leave()
+        try:
+            self.channel_settings.added_by.user.send_message(
+                f'I have left {self.channel_settings.link} because I don\'t have edit permissions. If you wanna'
+                f' keep using me you have to readd me with edit permissions', parse_mode=ParseMode.HTML)
+        except:
+            pass
 
     @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.in_channel & (~ (Filters.text | OwnFilters.is_media)),
                                  is_async=True)
