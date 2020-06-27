@@ -110,6 +110,8 @@ class ChannelSettings(TimeStampedModel):
         self.caption = None
         self.image_caption_direction = 'nw'
         self.image_caption_font = 'default'
+        self.reactions = []
+        self.forward_to = None
         self.save()
 
     @cached_property_ttl(ttl=3600)
