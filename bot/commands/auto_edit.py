@@ -5,7 +5,7 @@ from time import sleep
 
 from telegram import File, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto, ParseMode, PhotoSize
 from telegram.ext import Filters, MessageHandler
-from telegram.error import TimedOut, RetryAfter
+from telegram.error import TimedOut, RetryAfter, Unauthorized
 
 from bot.commands import BaseCommand
 from bot.filters import Filters as OwnFilters
@@ -45,24 +45,26 @@ class AutoEdit(BaseCommand):
             text = f'{text}\n\n{caption}'
 
         new_reply_markup = self.new_reply_buttons()
+        params = {}
+        if new_reply_markup:
+            params['reply_markup'] = new_reply_markup
 
         if self.needs_new_image():
             method = self.message.edit_media
-            params = dict(media=self.new_image(text, ParseMode.HTML), timeout=60, isgroup=self.channel_settings.channel_id)
+            params.update(dict(media=self.new_image(text, ParseMode.HTML), timeout=60, isgroup=self.channel_settings.channel_id))
         elif not self.message.effective_attachment and caption and not edited:
             method = self.message.edit_text
-            params = dict(text=text, parse_mode=ParseMode.HTML, timeout=60, isgroup=self.channel_settings.channel_id)
+            params.update(dict(text=text, parse_mode=ParseMode.HTML, timeout=60, isgroup=self.channel_settings.channel_id))
         elif caption and not edited:
             method = self.message.edit_caption
-            params = dict(caption=text, parse_mode=ParseMode.HTML, timeout=60, isgroup=self.channel_settings.channel_id)
+            params.update(dict(caption=text, parse_mode=ParseMode.HTML, timeout=60, isgroup=self.channel_settings.channel_id))
+        elif new_reply_markup:
+            method = self.message.edit_reply_markup
         elif not edited:
             self.forward_message()
             return
         else:
             return
-
-        if not edited:
-            params['reply_markup'] = new_reply_markup
 
         new_message = None
         while True:
@@ -92,6 +94,8 @@ class AutoEdit(BaseCommand):
         while True:
             try:
                 message.forward(int(self.channel_settings.forward_to))
+            except Unauthorized:
+                pass
             except TimedOut:
                 continue
             except RetryAfter as e:
