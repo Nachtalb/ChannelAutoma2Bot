@@ -31,17 +31,21 @@ class AutoReaction(AutoEdit):
             query.answer('Sorry, something went wrong.')
             return
 
+        already_clicked = False
         if clicked.users.filter(pk=self.user_settings.pk).exists():
-            query.answer('You have already reacted with this.')
-            return
+            already_clicked = True
 
         for reaction in reactions.filter(users=self.user_settings).all():
             reaction.users.remove(self.user_settings)
             reaction.save()
 
-        clicked.users.add(self.user_settings)
-        clicked.save()
-        query.answer(f'You reacted with {emoji}')
+        if not already_clicked:
+            clicked.users.add(self.user_settings)
+            clicked.save()
+            query.answer(f'You reacted with {emoji}')
+        else:
+            query.answer(f'You took your reaction {emoji} back')
+
 
         while True:
             try:
