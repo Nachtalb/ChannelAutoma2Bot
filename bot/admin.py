@@ -92,6 +92,25 @@ class UserSettingsAdmin(admin.ModelAdmin, AdminHelper):
 admin.site.register(UserSettings, UserSettingsAdmin)
 
 
+class AddedByFilter(admin.SimpleListFilter):
+    title = 'Added by'
+    parameter_name = 'added_by'
+
+    def lookups(self, request, model_admin):
+        users = {}
+        for channel in model_admin.model.objects.all():
+            users.setdefault(channel.added_by.pk, {'name': channel.added_by.name,
+                                                   'total': 0})
+            users[channel.added_by.pk]['total'] += 1
+
+        return [(pk, '%s (%d)' % (data['name'], data['total'])) for pk, data in users.items()]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(added_by__pk=self.value())
+        return queryset
+
+
 class ChannelSettingsAdmin(admin.ModelAdmin, AdminHelper):
     fieldsets = (
         ('Infos', {
@@ -114,6 +133,7 @@ class ChannelSettingsAdmin(admin.ModelAdmin, AdminHelper):
         'channel_id', 'channel_tg', 'channel_title', 'resolved_added_by_user', 'caption_small', 'image_caption_small',
         'bot_link', 'reactions', 'modified', 'created'
     ]
+    list_filter = [AddedByFilter]
 
     def channel_tg(self, obj: ChannelSettings) -> SafeText or str:
         if obj.chat and obj.chat.link:
