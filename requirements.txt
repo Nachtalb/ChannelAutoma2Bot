@@ -4,7 +4,7 @@ certifi==2019.3.9
 cffi==1.12.3
 chardet==3.0.4
 cryptography==2.6.1
-Django==2.2.4
+Django==2.2.15
 django-configurations==2.1
 django-dotenv==1.4.2
 django-extensions==2.2.1
@@ -12,7 +12,7 @@ django-telegrambot==1.0.1
 emoji==0.5.2
 future==0.17.1
 idna==2.8
-Pillow==6.1.0
+Pillow==7.2.0
 psycopg2==2.8.2
 pycparser==2.19
 python-telegram-bot==11.1.0
