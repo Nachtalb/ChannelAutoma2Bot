@@ -9,24 +9,33 @@ from django_extensions.db.models import TimeStampedModel
 from telegram import Chat
 from telegram.error import Unauthorized, BadRequest
 
-
 from bot.utils.internal import bot_not_running_protect
 from bot.utils.media import Fonts
 
 
 class ChannelSettings(TimeStampedModel):
-    channel_id = models.fields.BigIntegerField(primary_key=True)
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['channel_id', 'bot_token'],
+                                    name='channel_bot_unique')
+        ]
+
+    id = models.fields.BigAutoField(primary_key=True)
+
+    channel_id = models.fields.BigIntegerField()
     channel_username = models.fields.CharField(max_length=200, blank=True, null=True)
     channel_title = models.fields.CharField(max_length=200, blank=True, null=True)
 
-    added_by = models.ForeignKey('UserSettings', on_delete=models.DO_NOTHING)
+    bot_token = models.fields.CharField(max_length=200)
+
+    added_by = models.ForeignKey('UserSettings', on_delete=models.DO_NOTHING, null=True)
     users = models.ManyToManyField('UserSettings', related_name='channels', blank=True)
 
     forward_to = models.ForeignKey('ChannelSettings',
-            related_name='forward_from',
-            on_delete=models.DO_NOTHING,
-            blank=True,
-            null=True)
+                                   related_name='forward_from',
+                                   on_delete=models.DO_NOTHING,
+                                   blank=True,
+                                   null=True)
     caption = models.fields.TextField(blank=True, null=True)
     image_caption = models.fields.TextField(blank=True, null=True)
     image_caption_font = models.fields.TextField(
@@ -77,8 +86,8 @@ class ChannelSettings(TimeStampedModel):
             self.save(update_fields=['zombie'])
             print('{} | "{}" marked as zombie'.format(self.channel_id, self.channel_title))
             return None
-        except:
-            return None
+        except Exception:
+            pass
 
     def save(self, **kwargs):
         if kwargs.get('auto_update', False):

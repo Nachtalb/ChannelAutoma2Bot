@@ -28,8 +28,8 @@ class AutoEdit(BaseCommand):
             self.forward_message()
             return
         elif self.message.forward_from_chat:
-            fowarded_from = self.message.forward_from_chat
-            if fowarded_from.id == self.chat.id:
+            forwarded_from = self.message.forward_from_chat
+            if forwarded_from.id == self.chat.id:
                 return
             else:
                 self.forward_message()
@@ -51,13 +51,16 @@ class AutoEdit(BaseCommand):
 
         if self.needs_new_image():
             method = self.message.edit_media
-            params.update(dict(media=self.new_image(text, ParseMode.HTML), timeout=60, isgroup=self.channel_settings.channel_id))
+            params.update(dict(media=self.new_image(text, ParseMode.HTML), timeout=60,
+                               isgroup=self.channel_settings.channel_id))
         elif not self.message.effective_attachment and caption and not edited:
             method = self.message.edit_text
-            params.update(dict(text=text, parse_mode=ParseMode.HTML, timeout=60, isgroup=self.channel_settings.channel_id))
+            params.update(dict(text=text, parse_mode=ParseMode.HTML, timeout=60,
+                               isgroup=self.channel_settings.channel_id))
         elif caption and not edited:
             method = self.message.edit_caption
-            params.update(dict(caption=text, parse_mode=ParseMode.HTML, timeout=60, isgroup=self.channel_settings.channel_id))
+            params.update(dict(caption=text, parse_mode=ParseMode.HTML, timeout=60,
+                               isgroup=self.channel_settings.channel_id))
         elif new_reply_markup:
             method = self.message.edit_reply_markup
         elif not edited:
@@ -69,8 +72,8 @@ class AutoEdit(BaseCommand):
         new_message = None
         while True:
             try:
-                promis = method(**params)
-                new_message = promis.result()
+                promise = method(**params)
+                new_message = promise.result()
                 if self.media_group:
                     self.media_group.edited = True
                     self.media_group.save()
@@ -91,15 +94,18 @@ class AutoEdit(BaseCommand):
         self.forward_message(new_message)
 
     def leave(self):
+        print(f'Skip leave for {self.channel_settings.link}')
+        return
         self.chat.leave()
         try:
             self.channel_settings.added_by.user.send_message(
                 f'I have left {self.channel_settings.link} because I don\'t have edit permissions. If you wanna'
                 f' keep using me you have to readd me with edit permissions', parse_mode=ParseMode.HTML)
-        except:
+        except Exception:
             pass
 
-    @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.in_channel & (~ (Filters.text | OwnFilters.is_media)),
+    @BaseCommand.command_wrapper(MessageHandler,
+                                 filters=OwnFilters.in_channel & (~ (Filters.text | OwnFilters.is_media)),
                                  is_async=True)
     def forward_message(self, message=None):
         if self.update.edited_message or self.update.edited_channel_post:
@@ -179,6 +185,7 @@ class AutoEdit(BaseCommand):
     def get_reactions(self) -> Generator[Tuple[str, int], None, None]:
         for emoji in self.channel_settings.reactions:
             reaction = Reaction.objects.get_or_create(
+                bot_token=self.bot.token,
                 reaction=emoji,
                 message=self.message.message_id,
                 channel=self.channel_settings

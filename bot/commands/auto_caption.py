@@ -9,6 +9,7 @@ from bot.filters import Filters as OwnFilters
 from bot.models.channel_settings import ChannelSettings
 from bot.models.usersettings import UserSettings
 from bot.utils.chat import build_menu, channel_selector_menu
+from bot.telegrambot import my_bot
 
 
 class AutoCaption(AutoEdit):
@@ -59,7 +60,7 @@ class AutoCaption(AutoEdit):
             self.message.reply_text('You must have change channel info permissions to change the default caption.')
             return
 
-        self.user_settings.current_channel = ChannelSettings.objects.get(channel_id=channel_id)
+        self.user_settings.current_channel = ChannelSettings.objects.get(channel_id=channel_id, bot_token=self.bot.token)
         self.user_settings.state = UserSettings.SET_CAPTION
 
         self.update.callback_query.answer()

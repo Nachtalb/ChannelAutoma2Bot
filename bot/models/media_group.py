@@ -3,9 +3,17 @@ from django_extensions.db.models import TimeStampedModel
 
 
 class MediaGroup(TimeStampedModel):
-    id = models.fields.BigIntegerField(primary_key=True)
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['media_group_id', 'bot_token'],
+                                    name='mediagroup_bot_unique')
+        ]
+
+    media_group_id = models.fields.BigIntegerField(null=True)
     message_id = models.fields.BigIntegerField()
     edited = models.fields.BooleanField(default=False)
+
+    bot_token = models.fields.CharField(max_length=200)
 
     channel = models.ForeignKey('ChannelSettings',
                                 related_name='media_groups',

@@ -1,9 +1,23 @@
 import logging
+import threading
 from typing import Callable, List, Type
 
 from django_telegrambot.apps import DjangoTelegramBot
 from telegram import Bot, TelegramError, Update, User
-from telegram.ext import CallbackQueryHandler, CommandHandler, Filters, Handler, MessageHandler
+from telegram.ext import CallbackQueryHandler, CommandHandler, Filters, Handler, MessageHandler, Dispatcher
+
+from bot.utils.internal import set_thread_locals
+
+# Patch dispatcher
+original__process_update = Dispatcher.process_update
+
+
+def process_update(self, update: Update):
+    set_thread_locals(self, update)
+    return original__process_update(self, update)
+
+
+Dispatcher.process_update = process_update
 
 
 class MyBot:
@@ -12,8 +26,9 @@ class MyBot:
 
         self.logger.info('Loading handlers for telegram bot')
 
-        self.dispatcher = DjangoTelegramBot.dispatcher
-        self.bot = self.dispatcher.bot
+        self.dispatchers = DjangoTelegramBot.dispatchers
+        self.bots = [dp.bot for dp in self.dispatchers]
+        self.threadlocal = threading.local()
 
         self.add_command(func=self.error, is_error=True)
 
@@ -23,6 +38,30 @@ class MyBot:
     def me(self) -> User:
         return self.bot.get_me()
 
+    @property
+    def bot(self):
+        return getattr(self.dispatcher, 'bot', None)
+
+    @property
+    def token(self):
+        return getattr(self.bot, 'token', None)
+
+    @property
+    def dispatcher(self):
+        return getattr(self.threadlocal, 'dispatcher', None)
+
+    @property
+    def update(self):
+        return getattr(self.threadlocal, 'update', None)
+
+    def _add_handler(self, *args, **kwargs):
+        for dispatcher in self.dispatchers:
+            dispatcher.add_handler(*args, **kwargs)
+
+    def _add_error_handler(self, *args, **kwargs):
+        for dispatcher in self.dispatchers:
+            dispatcher.add_error_handler(*args, **kwargs)
+
     def add_command(self, handler: Type[Handler] or Handler = None, names: str or List[str] = None,
                     func: Callable = None, is_error: bool = False, group: int = 0, **kwargs):
         if is_error and not func:
@@ -31,17 +70,17 @@ class MyBot:
         elif is_error and func:
             if handler or names or kwargs:
                 self.logger.warning('When adding an error handler all arguments except func will be ignored.')
-            self.dispatcher.add_error_handler(func)
+            self._add_error_handler(func)
             return
 
         handler = handler or CommandHandler
 
         if isinstance(handler, Handler):
-            self.dispatcher.add_handler(handler=handler, group=group)
+            self._add_handler(handler=handler, group=group)
         elif handler == MessageHandler:
-            self.dispatcher.add_handler(handler=handler(kwargs.get('filters', Filters.all), func), group=group)
+            self._add_handler(handler=handler(kwargs.get('filters', Filters.all), func), group=group)
         elif handler == CallbackQueryHandler:
-            self.dispatcher.add_handler(handler=handler(func, **kwargs), group=group)
+            self._add_handler(handler=handler(func, **kwargs), group=group)
         else:
             if not names:
                 names = [func.__name__]
@@ -49,7 +88,7 @@ class MyBot:
                 names = [names]
 
             for name in names:
-                self.dispatcher.add_handler(handler=handler(name, func, **kwargs), group=group)
+                self._add_handler(handler=handler(name, func, **kwargs), group=group)
 
 
 # noinspection PyTypeChecker

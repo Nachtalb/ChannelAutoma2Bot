@@ -3,6 +3,10 @@ import logging
 from functools import wraps
 from typing import Callable, Type
 
+from telegram import Bot, Update
+from telegram.ext import Dispatcher
+from django_telegrambot.apps import DjangoTelegramBot
+
 bot_not_running_protect_logger = logging.getLogger('bot_not_running_protect')
 
 
@@ -38,3 +42,25 @@ def get_class_that_defined_method(meth: Callable or Type) -> Type or None:
         if isinstance(cls, type):
             return cls
     return None
+
+
+def set_thread_locals(base: Dispatcher or Bot or Update, update=None):
+    """Set necessary thread locals for this thread
+
+    This will set at least the dispatcher and if update is given also the update
+    """
+    from bot import telegrambot as tb
+
+    if isinstance(base, Dispatcher):
+        dispatcher = base
+    elif isinstance(base, Bot):
+        dispatcher = DjangoTelegramBot.get_dispatcher(base.token)
+    elif isinstance(base, Update) and base.effective_chat:
+        dispatcher = DjangoTelegramBot.get_dispatcher(base.effective_chat.bot.token)
+
+    tb.my_bot.threadlocal.dispatcher = dispatcher
+    tb.my_bot.threadlocal.update = update
+
+
+def first(l):
+    return next(iter(l), None)

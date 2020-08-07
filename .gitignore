@@ -262,3 +262,5 @@ static/*
 media/*
 !media/.gitkeep
 available_fonts.json
+.vim
+*.sql

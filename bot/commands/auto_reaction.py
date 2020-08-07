@@ -24,7 +24,8 @@ class AutoReaction(AutoEdit):
         data = query.data
         _, message_id, emoji = data.split(':')
         try:
-            reactions = Reaction.objects.filter(message=message_id, channel=self.channel_settings)
+            reactions = Reaction.objects.filter(message=message_id, channel=self.channel_settings,
+                                                bot_token=self.bot.token)
 
             clicked = reactions.get(reaction=emoji)
         except Exception:
@@ -48,7 +49,6 @@ class AutoReaction(AutoEdit):
                 query.answer(f'You took your reaction {emoji} back')
         except BadRequest:
             pass
-
 
         while True:
             try:
@@ -86,7 +86,8 @@ class AutoReaction(AutoEdit):
             self.message.reply_text('You must have change channel info permissions to change the reactions.')
             return
 
-        self.user_settings.current_channel = ChannelSettings.objects.get(channel_id=channel_id)
+        self.user_settings.current_channel = ChannelSettings.objects.get(channel_id=channel_id,
+                                                                         bot_token=self.bot.token)
         self.user_settings.state = UserSettings.SET_REACTIONS
 
         self.update.callback_query.answer()
@@ -103,7 +104,7 @@ class AutoReaction(AutoEdit):
         })
 
         self.message.reply_html(message, reply_markup=ReplyKeyboardMarkup(build_menu('Clear', 'Cancel')),
-                disable_web_page_preview=True)
+                                disable_web_page_preview=True)
 
     @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.state_is(UserSettings.SET_REACTIONS))
     def set_reactions(self):

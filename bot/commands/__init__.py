@@ -1,17 +1,17 @@
+from functools import wraps
+from typing import Callable, List, Type
 import inspect
 import logging
 import pkgutil
-from functools import wraps
-from typing import Callable, List, Type
 
 from telegram import Bot, Chat, Message, Update, User
-from telegram.ext import Handler, run_async
+from telegram.ext import Handler
 
 from bot.models.channel_settings import ChannelSettings
 from bot.models.usersettings import UserSettings
 from bot.models.media_group import MediaGroup
 from bot.telegrambot import my_bot
-from bot.utils.internal import get_class_that_defined_method
+from bot.utils.internal import get_class_that_defined_method, set_thread_locals, first
 
 _plugin_group_index = 0
 
@@ -42,17 +42,20 @@ class BaseCommand:
 
         self.user_settings = None
         if self.user:
-            self.user_settings = UserSettings.objects.get_or_create(user_id=self.user.id)[0]
+            self.user_settings = UserSettings.objects.get_or_create(user_id=self.user.id, bot_token=self.bot.token)[0]
             self.user_settings.auto_update_values(self.user, save=True)
 
         try:
-            self.channel_settings = ChannelSettings.objects.get(channel_id=self.chat.id)
+            self.channel_settings = ChannelSettings.objects.get(channel_id=self.chat.id, bot_token=self.bot.token)
         except ChannelSettings.DoesNotExist:
             pass
 
         self.media_group = None
         if self.message.media_group_id and self.channel_settings:
-            self.media_group = MediaGroup.objects.get_or_create(id=self.message.media_group_id, message_id=self.message.message_id, channel=self.channel_settings)[0]
+            self.media_group = MediaGroup.objects.get_or_create(media_group_id=self.message.media_group_id,
+                                                                message_id=self.message.message_id,
+                                                                channel=self.channel_settings,
+                                                                bot_token=self.bot.token)[0]
 
     @staticmethod
     def register_start_button(name: str, header: bool = False, footer: bool = False):
@@ -103,16 +106,30 @@ class BaseCommand:
         BaseCommand._home(self.bot, self.update)
 
     @staticmethod
+    def _set_thread_locals_async_wrapper(func, *args, **kwargs):
+        probably_self = first(args)
+        if isinstance(probably_self, BaseCommand):
+            bot = probably_self.bot
+            update = probably_self.update
+        else:
+            arg_values = args + list(kwargs.values())
+            bot = first([var for var in arg_values if isinstance(var, Bot)])
+            update = first([var for var in arg_values if isinstance(var, Update)])
+
+        set_thread_locals(bot, update)
+        return func(*args, **kwargs)
+
+    @staticmethod
     def command_wrapper(handler: Type[Handler] or Handler = None, names: str or List[str] = None,
                         is_async: bool = False, **kwargs):
-        global _plugin_group_index, _messagehandler_group_index
+        global _plugin_group_index
         logger.debug(f'Register new command: handler={handler}, names={names}, async={is_async}, kwargs={kwargs}')
 
         def outer_wrapper(func):
             @wraps(func)
             def wrapper(*inner_args, **inner_kwargs):
-                logger.debug(
-                    f'Command called: handler={handler}, names={names}, async={is_async}, kwargs={kwargs}, inner_args={inner_args}, inner_kargs={inner_kwargs}')
+                logger.debug(f'Command called: handler={handler}, names={names}, async={is_async}, kwargs={kwargs}, '
+                             f'inner_args={inner_args}, inner_kwargs={inner_kwargs}')
                 method_class = get_class_that_defined_method(func)
 
                 if (inner_args and isinstance(inner_args[0], method_class)) \
@@ -132,7 +149,8 @@ class BaseCommand:
 
                 try:
                     if is_async:
-                        run_async(func)(*_args, **_kwargs)
+                        my_bot.dispatcher.run_async(BaseCommand._set_thread_locals_async_wrapper,
+                                                    func, *_args, **_kwargs)
                     else:
                         func(*_args, **_kwargs)
                 except Exception as e:

@@ -2,6 +2,7 @@ from cached_property import cached_property_ttl
 from django.db import models
 from django_extensions.db.models import TimeStampedModel
 from telegram import User
+from telegram.error import Unauthorized, BadRequest
 
 from bot.utils.internal import bot_not_running_protect
 
@@ -26,8 +27,16 @@ class UserSettings(TimeStampedModel):
               SET_REACTIONS_MENU, SET_REACTIONS, SET_IMAGE_CAPTION_MENU, SET_IMAGE_CAPTION, SET_IMAGE_CAPTION_NEXT,
               SET_FORWARDER_MENU, SET_FORWARDER_TO, SET_IMAGE_CAPTION_ALPHA)
 
-    user_id = models.fields.BigIntegerField(primary_key=True)
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user_id', 'bot_token'],
+                                    name='user_bot_unique')
+        ]
+
+    user_id = models.fields.BigIntegerField()
     _user: User = None  # Actual telegram User object
+
+    bot_token = models.fields.CharField(max_length=200)
 
     current_channel = models.ForeignKey('ChannelSettings',
                                         related_name='current_user',
@@ -104,6 +113,6 @@ class UserSettings(TimeStampedModel):
                 self.save(update_fields=['zombie'])
                 print('{} | "{}" marked as zombie'.format(self.user_id, self.username))
                 return None
-            except:
+            except Exception:
                 return None
         return self._user

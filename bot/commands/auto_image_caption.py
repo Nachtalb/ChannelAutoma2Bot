@@ -18,7 +18,7 @@ from bot.utils.media import Fonts, Font
 class AutoImageCaption(AutoEdit):
     BaseCommand.register_start_button('Image Caption')
 
-    panagrams = (
+    pangrams = (
         'Jived fox nymph grabs quick waltz.',
         'Glib jocks quiz nymph to vex dwarf.',
         'Sphinx of black quartz, judge my vow.',
@@ -28,7 +28,7 @@ class AutoImageCaption(AutoEdit):
     )
 
     def sample_image(self, font: str or Font = None, text: str = None) -> BytesIO:
-        text = text or choice(self.panagrams)
+        text = text or choice(self.pangrams)
         font_path = str((font if isinstance(font, Font) else Fonts.get_font(font)).path)
 
         ttf_font = ImageFont.truetype(font_path, 50)
@@ -61,8 +61,11 @@ class AutoImageCaption(AutoEdit):
 
     @BaseCommand.command_wrapper(CallbackQueryHandler, pattern='^next_action:.*$')
     @BaseCommand.command_wrapper(MessageHandler,
-                                 filters=(OwnFilters.state_is(UserSettings.SET_IMAGE_CAPTION) | OwnFilters.state_is(UserSettings.SET_IMAGE_CAPTION_ALPHA)) &
-                                         OwnFilters.text_is('back', lower=True))
+                                 filters=(
+                                     (OwnFilters.state_is(UserSettings.SET_IMAGE_CAPTION) |
+                                      OwnFilters.state_is(UserSettings.SET_IMAGE_CAPTION_ALPHA)) &
+                                     OwnFilters.text_is('back', lower=True)
+                                 ))
     def next_action(self):
         if not self.user_settings.current_channel:
             try:
@@ -77,10 +80,12 @@ class AutoImageCaption(AutoEdit):
         member = self.bot.get_chat_member(chat_id=channel_id, user_id=self.user.id)
 
         if not member.can_change_info and not member.status == member.CREATOR:
-            self.message.reply_text('You must have change channel info permissions to change the default image caption.')
+            self.message.reply_text('You must have change channel info permissions '
+                                    'to change the default image caption.')
             return
 
-        self.user_settings.current_channel = ChannelSettings.objects.get(channel_id=channel_id)
+        self.user_settings.current_channel = ChannelSettings.objects.get(channel_id=channel_id,
+                                                                         bot_token=self.bot.token)
         self.user_settings.state = UserSettings.SET_IMAGE_CAPTION_NEXT
 
         kwargs = {
@@ -107,17 +112,17 @@ class AutoImageCaption(AutoEdit):
         self.message.edit_text(
             'Where do you want the caption be placed?',
             reply_markup=InlineKeyboardMarkup([[
-                InlineKeyboardButton('[NW]' if 'nw' == direction else 'NW', callback_data='set_image_caption_position:nw'),
-                InlineKeyboardButton('[N]' if 'n' == direction else 'N', callback_data='set_image_caption_position:n'),
-                InlineKeyboardButton('[NE]' if 'ne' == direction else 'NE', callback_data='set_image_caption_position:ne'),
+                InlineKeyboardButton('[NW]' if 'nw' == direction else 'NW', callback_data='set_image_caption_position:nw'),  # noqa
+                InlineKeyboardButton('[N]' if 'n' == direction else 'N', callback_data='set_image_caption_position:n'),      # noqa
+                InlineKeyboardButton('[NE]' if 'ne' == direction else 'NE', callback_data='set_image_caption_position:ne'),  # noqa
             ], [
-                InlineKeyboardButton('[W]' if 'w' == direction else 'W', callback_data='set_image_caption_position:w'),
-                InlineKeyboardButton('[C]' if 'c' == direction else 'C', callback_data='set_image_caption_position:c'),
-                InlineKeyboardButton('[E]' if 'e' == direction else 'E', callback_data='set_image_caption_position:e'),
+                InlineKeyboardButton('[W]' if 'w' == direction else 'W', callback_data='set_image_caption_position:w'),  # noqa
+                InlineKeyboardButton('[C]' if 'c' == direction else 'C', callback_data='set_image_caption_position:c'),  # noqa
+                InlineKeyboardButton('[E]' if 'e' == direction else 'E', callback_data='set_image_caption_position:e'),  # noqa
             ], [
-                InlineKeyboardButton('[SW]' if 'sw' == direction else 'SW', callback_data='set_image_caption_position:sw'),
-                InlineKeyboardButton('[S]' if 's' == direction else 'S', callback_data='set_image_caption_position:s'),
-                InlineKeyboardButton('[SE]' if 'se' == direction else 'SE', callback_data='set_image_caption_position:se'),
+                InlineKeyboardButton('[SW]' if 'sw' == direction else 'SW', callback_data='set_image_caption_position:sw'),  # noqa
+                InlineKeyboardButton('[S]' if 's' == direction else 'S', callback_data='set_image_caption_position:s'),      # noqa
+                InlineKeyboardButton('[SE]' if 'se' == direction else 'SE', callback_data='set_image_caption_position:se'),  # noqa
             ], [
                 InlineKeyboardButton('Back', callback_data='next_action:'),
             ]])
@@ -156,9 +161,10 @@ class AutoImageCaption(AutoEdit):
 
         font = Fonts.get_font(new_font)
 
-        text = choice(self.panagrams)
+        text = choice(self.pangrams)
         image = self.sample_image(font, text)
-        self.message.reply_photo(image, caption=f'Font set to "<code>{font.name}</code>"\nAbove text "<code>{text}</code>"',
+        self.message.reply_photo(image,
+                                 caption=f'Font set to "<code>{font.name}</code>"\nAbove text "<code>{text}</code>"',
                                  parse_mode=ParseMode.HTML)
 
         self.user_settings.current_channel.image_caption_font = font.id
@@ -207,7 +213,8 @@ class AutoImageCaption(AutoEdit):
         member = self.bot.get_chat_member(chat_id=self.user_settings.current_channel.channel_id, user_id=self.user.id)
 
         if not member.can_change_info and not member.status == member.CREATOR:
-            self.message.reply_text('You must have change channel info permissions to change the default image caption.')
+            self.message.reply_text('You must have change channel info permissions '
+                                    'to change the default image caption.')
             return
 
         self.user_settings.state = UserSettings.SET_IMAGE_CAPTION
@@ -228,7 +235,8 @@ class AutoImageCaption(AutoEdit):
         member = self.bot.get_chat_member(chat_id=self.user_settings.current_channel.channel_id, user_id=self.user.id)
 
         if not member.can_change_info and not member.status == member.CREATOR:
-            self.message.reply_text('You must have change channel info permissions to change the default image caption.')
+            self.message.reply_text('You must have change channel info permissions '
+                                    'to change the default image caption.')
             return
 
         self.user_settings.state = UserSettings.SET_IMAGE_CAPTION_ALPHA
@@ -242,8 +250,9 @@ class AutoImageCaption(AutoEdit):
             'current_alpha': self.user_settings.current_channel.image_caption_alpha,
         })
 
-        self.message.reply_html(message, reply_markup=ReplyKeyboardMarkup(build_menu('100', '75', '50', '25', 'Back', 'Cancel', cols=4),
-                                                                          one_time_keyboard=True))
+        self.message.reply_html(message, reply_markup=ReplyKeyboardMarkup(
+            build_menu('100', '75', '50', '25', 'Back', 'Cancel', cols=4),
+            one_time_keyboard=True))
 
     @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.state_is(UserSettings.SET_IMAGE_CAPTION_ALPHA))
     def set_caption_alpha(self):
@@ -261,5 +270,6 @@ class AutoImageCaption(AutoEdit):
         self.user_settings.current_channel.image_caption_alpha = alpha
         self.user_settings.current_channel.save()
 
-        self.message.reply_html(f'The opacity of {self.user_settings.current_channel.link} was set to <pre>{alpha}</pre>')
+        self.message.reply_html(f'The opacity of {self.user_settings.current_channel.link} '
+                                'was set to <pre>{alpha}</pre>')
         self.pre_set_caption_alpha()

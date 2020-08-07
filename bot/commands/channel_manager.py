@@ -28,9 +28,10 @@ class ChannelManager(BaseCommand):
 
         created = False
         try:
-            channel = ChannelSettings.objects.get(channel_id=possible_channel.id)
+            channel = ChannelSettings.objects.get(channel_id=possible_channel.id, bot_token=self.bot.token)
         except ChannelSettings.DoesNotExist:
-            channel = ChannelSettings.objects.create(channel_id=possible_channel.id, added_by=self.user_settings)
+            channel = ChannelSettings.objects.create(channel_id=possible_channel.id, bot_token=self.bot.token)
+            channel.added_by = self.user_settings
             created = True
 
         if created or self.user_settings not in channel.users.all():
@@ -46,7 +47,7 @@ class ChannelManager(BaseCommand):
 
     @BaseCommand.command_wrapper(MessageHandler,
                                  filters=(OwnFilters.text_is('Settings') & OwnFilters.state_is(UserSettings.IDLE)) |
-                                         (OwnFilters.text_is('Back') & OwnFilters.state_is(UserSettings.CHANNEL_SETTINGS_MENU)))
+                                         (OwnFilters.text_is('Back') & OwnFilters.state_is(UserSettings.CHANNEL_SETTINGS_MENU)))  # noqa
     def settings_menu(self):
         footer_buttons = [InlineKeyboardButton('Update Channels', callback_data='update_channels'),
                           InlineKeyboardButton('Back', callback_data='cancel')]
@@ -85,8 +86,8 @@ class ChannelManager(BaseCommand):
         buttons = ReplyKeyboardMarkup(build_menu('Remove', 'Remove Forwarders', footer_buttons=['Back', 'Cancel']))
         self.message.reply_text(f'Settings for {self.user_settings.current_channel.name}', reply_markup=buttons)
 
-    @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.text_is('Remove') &
-                                                         OwnFilters.state_is(UserSettings.CHANNEL_SETTINGS_MENU))
+    @BaseCommand.command_wrapper(MessageHandler, filters=(OwnFilters.text_is('Remove') &
+                                                          OwnFilters.state_is(UserSettings.CHANNEL_SETTINGS_MENU)))
     def remove_channel_confirm_dialog(self):
         self.user_settings.state = UserSettings.PRE_REMOVE_CHANNEL
         channel = self.user_settings.current_channel
@@ -102,12 +103,12 @@ class ChannelManager(BaseCommand):
                                 parse_mode=ParseMode.HTML,
                                 disable_web_page_preview=True)
 
-    @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.text_is('Remove Forwarders') &
-                                                         OwnFilters.state_is(UserSettings.CHANNEL_SETTINGS_MENU))
+    @BaseCommand.command_wrapper(MessageHandler, filters=(OwnFilters.text_is('Remove Forwarders') &
+                                                          OwnFilters.state_is(UserSettings.CHANNEL_SETTINGS_MENU)))
     def remove_forwarders(self):
         self.user_settings.current_channel.forward_to = None
         self.user_settings.current_channel.save()
-        self.message.reply_text('Forwarders remvoed')
+        self.message.reply_text('Forwarders removed')
 
     @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.state_is(UserSettings.PRE_REMOVE_CHANNEL))
     def remove_channel_confirmation(self):

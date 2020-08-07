@@ -96,7 +96,7 @@ class Base(Configuration):
 
 
 class Production(Base):
-    DEBUG = False
+    DEBUG = True
 
     DATABASES = {
         'default': {
@@ -117,11 +117,23 @@ class Production(Base):
         'STRICT_INIT': True,
 
         'BOTS': [
+            #  {
+                #  'TOKEN': os.environ['TELEGRAM_TOKEN'],
+                #  'MESSAGEQUEUE_ENABLED': True,
+                #  'ASYNC_WORKERS': 16,
+                #  'ON_POOL_SIZE': 32,
+            #  },
             {
-                'TOKEN': os.environ['TELEGRAM_TOKEN'],
+                'TOKEN': '1171352300:AAF65g66cx_17rJzVXR4Z3n7aYqIcQsTSB8',
                 'MESSAGEQUEUE_ENABLED': True,
-                'ASYNC_WORKERS': 16,
-                'ON_POOL_SIZE': 32,
+                'ASYNC_WORKERS': 8,
+                'ON_POOL_SIZE': 16,
+            },
+            {
+                'TOKEN': '1388865061:AAEYRwUSNsa7IEdjT6fyjioCRDezM5LcKSU',
+                'MESSAGEQUEUE_ENABLED': True,
+                'ASYNC_WORKERS': 4,
+                'ON_POOL_SIZE': 8,
             },
         ],
 
@@ -153,6 +165,12 @@ class Development(Base):
         'BOTS': [
             {
                 'TOKEN': os.environ['TELEGRAM_TOKEN'],
+                'MESSAGEQUEUE_ENABLED': True,
+                'ASYNC_WORKERS': 16,
+                'ON_POOL_SIZE': 32,
+            },
+            {
+                'TOKEN': '1171352300:AAF65g66cx_17rJzVXR4Z3n7aYqIcQsTSB8',
                 'MESSAGEQUEUE_ENABLED': True,
                 'ASYNC_WORKERS': 16,
                 'ON_POOL_SIZE': 32,

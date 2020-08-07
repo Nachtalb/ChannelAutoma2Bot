@@ -1,15 +1,14 @@
 import emoji
 from django.template.loader import get_template
-from telegram import CallbackQuery, ReplyKeyboardMarkup
+from telegram import ReplyKeyboardMarkup
 from telegram.ext import CallbackQueryHandler, MessageHandler
 
 from bot.commands import BaseCommand
 from bot.commands.auto_edit import AutoEdit
 from bot.filters import Filters as OwnFilters
 from bot.models.channel_settings import ChannelSettings
-from bot.models.reactions import Reaction
 from bot.models.usersettings import UserSettings
-from bot.utils.chat import build_menu, channel_selector_menu
+from bot.utils.chat import channel_selector_menu
 
 
 class AutoForward(AutoEdit):
@@ -31,7 +30,7 @@ class AutoForward(AutoEdit):
         self.message.reply_text('Forward from:', reply_markup=menu)
 
     @BaseCommand.command_wrapper(CallbackQueryHandler, pattern='^forward_from:.*$')
-    def set_forwarder_to_menu(self):
+    def set_forwader_from_menu(self):
         channel_id = int(self.update.callback_query.data.split(':')[1])
         member = self.bot.get_chat_member(chat_id=channel_id, user_id=self.user.id)
 
@@ -39,7 +38,7 @@ class AutoForward(AutoEdit):
             self.message.reply_text('You must have change channel info permissions.')
             return
 
-        from_channel = ChannelSettings.objects.get(channel_id=channel_id)
+        from_channel = ChannelSettings.objects.get(channel_id=channel_id, bot_token=self.bot.token)
         self.user_settings.current_channel = from_channel
         self.user_settings.state = UserSettings.SET_FORWARDER_TO
 
@@ -56,10 +55,10 @@ class AutoForward(AutoEdit):
 
         if connections:
             self.message.reply_html(emoji.emojize('Connections:\n- ' + '\n- '.join(connections), use_aliases=True),
-                    disable_web_page_preview=True)
+                                    disable_web_page_preview=True)
 
         self.message.reply_html(f'Forward from {self.user_settings.current_channel.link} to', reply_markup=menu,
-                disable_web_page_preview=True)
+                                disable_web_page_preview=True)
         self.message.delete()
 
     @BaseCommand.command_wrapper(CallbackQueryHandler, pattern='^forward_to:.*$')
@@ -69,16 +68,18 @@ class AutoForward(AutoEdit):
 
         member_to = self.bot.get_chat_member(chat_id=channel_to_id, user_id=self.user.id)
 
-        if not member_to.can_send_messages and not member_to.status == member_to.CREATOR:
+        if (not member_to.can_send_messages
+                and not member_to.can_post_messages
+                and not member_to.status == member_to.CREATOR):
             self.message.reply_text('You must have permissions to send messages.')
             return
 
-        from_channel = ChannelSettings.objects.get(channel_id=channel_from_id)
-        to_channel = ChannelSettings.objects.get(channel_id=channel_to_id)
+        from_channel = ChannelSettings.objects.get(channel_id=channel_from_id, bot_token=self.bot.token)
+        to_channel = ChannelSettings.objects.get(channel_id=channel_to_id, bot_token=self.bot.token)
 
         from_channel.forward_to = to_channel
         from_channel.save()
 
         self.message.reply_html(f'Messages from {from_channel.link} are now forwarded to {to_channel.link}',
-                disable_web_page_preview=True)
+                                disable_web_page_preview=True)
         self.home()

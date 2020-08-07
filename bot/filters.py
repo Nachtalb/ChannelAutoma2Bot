@@ -6,6 +6,7 @@ from telegram.ext import BaseFilter
 from bot.models.channel_settings import ChannelSettings
 from bot.models.usersettings import UserSettings
 from bot.utils.chat import is_media_message
+from bot.telegrambot import my_bot
 
 
 class Filters:
@@ -47,7 +48,7 @@ class Filters:
         name = 'Filters.text_is_channel'
 
         def filter(self, message):
-            return message.text in list(map(lambda obj: obj.name, ChannelSettings.objects.all()))
+            return message.text in list(map(lambda obj: obj.name, ChannelSettings.objects.get(bot_token=my_bot.token)))
 
     text_is_channel = _TextIsChannel()
     """:obj:`Filter`: Message text is name of channel."""
@@ -63,7 +64,7 @@ class Filters:
                 if not message.from_user:
                     return False
                 try:
-                    user = UserSettings.objects.get(user_id=message.from_user.id)
+                    user = UserSettings.objects.get(user_id=message.from_user.id, bot_token=my_bot.token)
                 except UserSettings.DoesNotExist:
                     return False
                 return user.state == state
