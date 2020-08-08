@@ -33,7 +33,7 @@ class ChannelSettings(TimeStampedModel):
 
     forward_to = models.ForeignKey('ChannelSettings',
                                    related_name='forward_from',
-                                   on_delete=models.DO_NOTHING,
+                                   on_delete=models.SET_NULL,
                                    blank=True,
                                    null=True)
     caption = models.fields.TextField(blank=True, null=True)
