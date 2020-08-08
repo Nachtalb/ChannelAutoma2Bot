@@ -60,7 +60,8 @@ class AutoCaption(AutoEdit):
             self.message.reply_text('You must have change channel info permissions to change the default caption.')
             return
 
-        self.user_settings.current_channel = ChannelSettings.objects.get(channel_id=channel_id, bot_token=self.bot.token)
+        self.user_settings.current_channel = ChannelSettings.objects.get(channel_id=channel_id,
+                                                                         bot_token=self.bot.token)
         self.user_settings.state = UserSettings.SET_CAPTION
 
         self.update.callback_query.answer()
