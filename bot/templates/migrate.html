@@ -1,0 +1,14 @@
+<form method="post">{% csrf_token %}
+  <ul>
+  {% for channel, bot_name in channels.items %}
+      <li>
+        <input type="hidden" name="ids" value="{{ channel.pk }}">
+        <a href="{{ channel.pure_link }}" target="_blank">{{ channel.name }}</a> --
+        <span>{{ bot_name }}</span>
+      </li>
+  {% endfor %}
+  </ul>
+
+  {{ form.as_p  }}
+  <input type="submit" value="Send message">
+</form>

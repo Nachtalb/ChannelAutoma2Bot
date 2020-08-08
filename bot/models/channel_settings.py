@@ -124,10 +124,19 @@ class ChannelSettings(TimeStampedModel):
         self.save()
 
     @cached_property_ttl(ttl=3600)
-    @bot_not_running_protect
+    def pure_link(self) -> str or None:
+        link = None
+        if self.chat:
+            link = self.chat.link or self.chat.invite_link or self.chat.bot.export_chat_invite_link(self.chat.id)
+        elif self.channel_username:
+            link = f'https://t.me/{self.channel_username}'
+        return link
+
+    @property
     def link(self) -> str:
-        link = self.chat.link or self.chat.invite_link or self.chat.bot.export_chat_invite_link(self.chat.id)
-        return f'<a href="{link}">{self.name}</a>'
+        if not self.pure_link:
+            return
+        return f'<a href="{self.pure_link}">{self.name}</a>'
 
 
 @receiver(pre_save)

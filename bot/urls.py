@@ -1,12 +1,12 @@
 from django.conf.urls import url
 from django.contrib import admin
-from django.shortcuts import redirect
 from django.urls import include, path
 
-from bot.views import redirec_to_admin_view
+from bot.views import redirect_to_admin_view, MigrateToBotView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', redirec_to_admin_view),
+    path('', redirect_to_admin_view),
+    path('migrate/', MigrateToBotView.as_view()),
     url(r'^', include('django_telegrambot.urls')),
 ]

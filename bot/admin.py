@@ -1,6 +1,7 @@
 from typing import Iterator
 
 from django.contrib import admin
+from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.safestring import SafeText, mark_safe
@@ -92,6 +93,16 @@ class UserSettingsAdmin(admin.ModelAdmin, AdminHelper):
 admin.site.register(UserSettings, UserSettingsAdmin)
 
 
+def migrate_to_bot(modeladmin, request, queryset):
+    selected = queryset.values_list('pk', flat=True)
+    return HttpResponseRedirect('/migrate/?ids=%s' % (
+        ','.join(str(pk) for pk in selected),
+    ))
+
+
+migrate_to_bot.short_description = 'Migrate to new bot'
+
+
 class AddedByFilter(admin.SimpleListFilter):
     title = 'Added by'
     parameter_name = 'added_by'
@@ -103,7 +114,8 @@ class AddedByFilter(admin.SimpleListFilter):
                                                    'total': 0})
             users[channel.added_by.pk]['total'] += 1
 
-        return [(pk, '%s (%d)' % (data['name'], data['total'])) for pk, data in users.items()]
+        return sorted([(pk, '%s (%d)' % (data['name'], data['total']))
+                       for pk, data in users.items()], key=lambda i: i[1])
 
     def queryset(self, request, queryset):
         if self.value():
@@ -134,10 +146,11 @@ class ChannelSettingsAdmin(admin.ModelAdmin, AdminHelper):
         'bot_link', 'reactions', 'modified', 'created'
     ]
     list_filter = [AddedByFilter]
+    actions = [migrate_to_bot]
 
     def channel_tg(self, obj: ChannelSettings) -> SafeText or str:
-        if obj.chat and obj.chat.link:
-            return format_html(link_template, link=obj.chat.link, text=obj.name, target='_blank')
+        if obj.pure_link:
+            return format_html(link_template, link=obj.pure_link, text=obj.name, target='_blank')
         return obj.name
 
     def resolved_added_by_user(self, obj: ChannelSettings) -> SafeText or str:

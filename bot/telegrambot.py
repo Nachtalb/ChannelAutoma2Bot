@@ -26,8 +26,8 @@ class MyBot:
 
         self.logger.info('Loading handlers for telegram bot')
 
-        self.dispatchers = DjangoTelegramBot.dispatchers
-        self.bots = [dp.bot for dp in self.dispatchers]
+        self.dispatchers: List[Dispatcher] = DjangoTelegramBot.dispatchers
+        self.bots: List[Bot] = [dp.bot for dp in self.dispatchers]
         self.threadlocal = threading.local()
 
         self.add_command(func=self.error, is_error=True)
