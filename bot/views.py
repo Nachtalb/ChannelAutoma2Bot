@@ -4,7 +4,8 @@ from django.shortcuts import render
 from django.views.generic import FormView
 from django.db import transaction
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import StreamingHttpResponse
+from django.http import StreamingHttpResponse, HttpResponse
+from telegram.error import BadRequest
 
 from bot.models.usersettings import UserSettings
 from bot.models.channel_settings import ChannelSettings
@@ -37,7 +38,7 @@ class MigrateToBotView(LoginRequiredMixin, FormView):
         ids = list(filter(None, self.request.GET.get('ids', '').split(',')))
         channel_objs = ChannelSettings.objects.filter(pk__in=ids)
         if not channel_objs:
-            return 'nope'
+            return HttpResponse('No IDs')
 
         form = self.form_class()
 
@@ -57,7 +58,7 @@ class MigrateToBotView(LoginRequiredMixin, FormView):
         return render(self.request, self.template_name, {'form': form, 'channels': channels})
 
     def post(self, *args, **kwargs):
-        ids = self.request.POST.get('ids', [])
+        ids = self.request.POST.getlist('ids')
         if not isinstance(ids, list):
             ids = [ids]
         ids = filter(None, ids)
@@ -66,14 +67,22 @@ class MigrateToBotView(LoginRequiredMixin, FormView):
             if not ids:
                 raise ValueError()
         except ValueError:
-            return 'nope'
+            return HttpResponse('IDs not clean')
 
         channels = ChannelSettings.objects.filter(pk__in=ids)
-        form = self.form_class(first(channels).bot_token, self.request.POST)
+        form = self.form_class(self.request.POST)
+
+        bot_token = self.request.POST.get('new_bot_token')
+        for channel in channels:
+            bot = first([bot for bot in tb.my_bot.bots if bot.token == bot_token])
+            try:
+                bot.get_chat(channel.channel_id)
+            except BadRequest:
+                return HttpResponse(f'Bot is not a member of {channel.name}')
 
         if form.is_valid():
-            return StreamingHttpResponse(self.migrate(channels, self.request.POST.get('new_bot_token')))
-        return 'nope'
+            return StreamingHttpResponse(self.migrate(channels, bot_token))
+        return HttpResponse('Form invalid')
 
     def print(self, text: str) -> str:
         return text + '\n'
