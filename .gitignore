@@ -264,3 +264,4 @@ media/*
 available_fonts.json
 .vim
 *.sql
+production-bots.json

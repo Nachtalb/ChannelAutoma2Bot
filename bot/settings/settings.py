@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 
@@ -95,6 +96,8 @@ class Base(Configuration):
     AVAILABLE_FONTS = os.environ['AVAILABLE_FONTS']
 
 
+_bot_config = json.loads((BASE_PATH / os.environ.get('BOT_CONFIG_FILE')).read_text())
+
 class Production(Base):
     DEBUG = True
 
@@ -116,27 +119,7 @@ class Production(Base):
         'WEBHOOK_PREFIX': 'webhook/',
         'STRICT_INIT': True,
 
-        'BOTS': [
-            #  {
-                #  'TOKEN': os.environ['TELEGRAM_TOKEN'],
-                #  'MESSAGEQUEUE_ENABLED': True,
-                #  'ASYNC_WORKERS': 16,
-                #  'ON_POOL_SIZE': 32,
-            #  },
-            {
-                'TOKEN': '1171352300:AAF65g66cx_17rJzVXR4Z3n7aYqIcQsTSB8',
-                'MESSAGEQUEUE_ENABLED': True,
-                'ASYNC_WORKERS': 8,
-                'ON_POOL_SIZE': 16,
-            },
-            {
-                'TOKEN': '1388865061:AAEYRwUSNsa7IEdjT6fyjioCRDezM5LcKSU',
-                'MESSAGEQUEUE_ENABLED': True,
-                'ASYNC_WORKERS': 4,
-                'ON_POOL_SIZE': 8,
-            },
-        ],
-
+        'BOTS': _bot_config,
     }
 
 
@@ -164,7 +147,7 @@ class Development(Base):
 
         'BOTS': [
             {
-                'TOKEN': os.environ['TELEGRAM_TOKEN'],
+                'TOKEN': os.environ.get('TELEGRAM_TOKEN', _bot_config[0]['TOKEN']),
                 'MESSAGEQUEUE_ENABLED': True,
                 'ASYNC_WORKERS': 16,
                 'ON_POOL_SIZE': 32,
