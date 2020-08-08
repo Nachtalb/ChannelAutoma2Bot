@@ -93,6 +93,9 @@ class ChannelSettings(TimeStampedModel):
         if kwargs.get('auto_update', False):
             self.auto_update_values(save=False)
             kwargs.pop('auto_update')
+
+        if self.channel_id > 0:
+            self.channel_id = self.channel_id * -1
         super().save(**kwargs)
 
     def auto_update_values(self, chat: Chat = None, save=True) -> bool:
