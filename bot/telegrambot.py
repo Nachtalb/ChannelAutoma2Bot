@@ -23,12 +23,16 @@ Dispatcher.process_update = process_update
 class MyBot:
     def __init__(self):
         self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger.setLevel(logging.INFO)
 
         self.logger.info('Loading handlers for telegram bot')
 
         self.dispatchers: List[Dispatcher] = DjangoTelegramBot.dispatchers
         self.bots: List[Bot] = [dp.bot for dp in self.dispatchers]
         self.threadlocal = threading.local()
+
+        for bot in self.bots:
+            self.logger.info('Bot {} [{}] up'.format(bot.get_me().username, bot.token))
 
         self.add_command(func=self.error, is_error=True)
 

@@ -77,7 +77,7 @@ class AutoEdit(BaseCommand):
             except TimedOut:
                 continue
             except RetryAfter as e:
-                print(f'Retry message {method} to {self.channel_settings.name}')
+                print(f'Retry message {method.__name__} to {self.channel_settings.name}')
                 sleep(e.retry_after)
                 continue
             break

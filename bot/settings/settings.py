@@ -1,10 +1,13 @@
 import json
 import os
+import logging
 from pathlib import Path
 
 from configurations import Configuration
 
 BASE_PATH = Path(__file__).absolute().parent.parent.parent
+
+logging.basicConfig(level=logging.INFO)
 
 
 class Base(Configuration):
