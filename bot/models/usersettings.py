@@ -4,7 +4,7 @@ from django_extensions.db.models import TimeStampedModel
 from telegram import User
 from telegram.error import Unauthorized, BadRequest
 
-from bot.utils.internal import bot_not_running_protect
+from bot.utils.internal import bot_not_running_protect, first
 
 
 class UserSettings(TimeStampedModel):
@@ -102,16 +102,21 @@ class UserSettings(TimeStampedModel):
     @property
     @bot_not_running_protect
     def user(self) -> User:
-        if self.zombie:
-            return None
         from bot.telegrambot import my_bot
         if not self._user:
             try:
-                self._user = my_bot.bot.get_chat(self.user_id)
+                bot = my_bot.get_bot(self.bot_token)
+                self._user = bot.get_chat(self.user_id)
+
+                if self.zombie:
+                    self.zombie = False
+                    self.save(update_fields=['zombie'])
+                    print(f'Unmarked {self.name}[{self.user_id}] as a zombie')
             except (Unauthorized, BadRequest):
-                self.zombie = True
-                self.save(update_fields=['zombie'])
-                print('{} | "{}" marked as zombie'.format(self.user_id, self.username))
+                if not self.zombie:
+                    self.zombie = True
+                    self.save(update_fields=['zombie'])
+                    print(f'Marked {self.name}[{self.user_id}] as a zombie')
                 return None
             except Exception:
                 return None

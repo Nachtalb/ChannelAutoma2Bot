@@ -42,7 +42,7 @@ class ChannelManager(BaseCommand):
         if self.user_settings not in channel.users.all():
             channel.users.add(self.user_settings)
 
-        channel.save(auto_update=True)
+        channel.save(auto_update=True, chat=possible_channel)
         self.message.reply_text(message)
 
     @BaseCommand.command_wrapper(MessageHandler,

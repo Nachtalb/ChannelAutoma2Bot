@@ -58,6 +58,7 @@ class ChannelSettings(TimeStampedModel):
     image_caption_alpha = models.fields.IntegerField(default=100)
     _reactions = models.fields.TextField(blank=True, null=True)
     zombie = models.fields.BooleanField(default=False)
+    _chat = None
 
     def __int__(self):
         return self.channel_id
@@ -76,22 +77,28 @@ class ChannelSettings(TimeStampedModel):
     @property
     @bot_not_running_protect
     def chat(self) -> Chat:
-        if self.zombie:
-            return None
-        from bot.telegrambot import my_bot
-        try:
-            return my_bot.bot.get_chat(self.channel_id)
-        except (Unauthorized, BadRequest):
-            self.zombie = True
-            self.save(update_fields=['zombie'])
-            print('{} | "{}" marked as zombie'.format(self.channel_id, self.channel_title))
-            return None
-        except Exception:
-            pass
+        if not self._chat:
+            from bot.telegrambot import my_bot
+            try:
+                bot = my_bot.get_bot(self.bot_token)
+                self._chat = bot.get_chat(self.channel_id)
+                if self.zombie:
+                    print(f'Unmarked {self.name}[{self.channel_id}] as a zombie')
+                    self.save(update_fields=['zombie'])
+            except (Unauthorized, BadRequest):
+                if not self.zombie:
+                    print(f'Marked {self.name}[{self.channel_id}] as a zombie')
+                    self.save(update_fields=['zombie'])
+                    return
+                return
+            except Exception:
+                pass
+        return self._chat
 
     def save(self, **kwargs):
         if kwargs.get('auto_update', False):
-            self.auto_update_values(save=False)
+            chat = kwargs.pop('chat', None)
+            self.auto_update_values(chat=chat, save=False)
             kwargs.pop('auto_update')
 
         if self.channel_id > 0:

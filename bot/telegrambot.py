@@ -6,7 +6,7 @@ from django_telegrambot.apps import DjangoTelegramBot
 from telegram import Bot, TelegramError, Update, User
 from telegram.ext import CallbackQueryHandler, CommandHandler, Filters, Handler, MessageHandler, Dispatcher
 
-from bot.utils.internal import set_thread_locals
+from bot.utils.internal import set_thread_locals, first
 
 # Patch dispatcher
 original__process_update = Dispatcher.process_update
@@ -37,6 +37,9 @@ class MyBot:
 
     def me(self) -> User:
         return self.bot.get_me()
+
+    def get_bot(self, token):
+        return first([bot for bot in self.bots if bot.token == token])
 
     @property
     def bot(self):
