@@ -35,13 +35,9 @@ class AutoEdit(BaseCommand):
                 self.forward_message()
                 return
 
-        edited = None
-        if self.media_group and not self.channel_settings.forward_to:
-            edited = self.media_group.edited
-
         text = (self.message.text_html or self.message.caption_html or '').strip()
         caption = self.new_caption(text)
-        if caption and not edited:
+        if caption and not self.media_group_creator:
             text = f'{text}\n\n{caption}'
 
         new_reply_markup = self.new_reply_buttons()
@@ -53,20 +49,18 @@ class AutoEdit(BaseCommand):
             method = self.message.edit_media
             params.update(dict(media=self.new_image(text, ParseMode.HTML), timeout=60,
                                isgroup=self.channel_settings.channel_id))
-        elif not self.message.effective_attachment and caption and not edited:
+        elif not self.message.effective_attachment and caption and not self.media_group_creator:
             method = self.message.edit_text
             params.update(dict(text=text, parse_mode=ParseMode.HTML, timeout=60,
                                isgroup=self.channel_settings.channel_id))
-        elif caption and not edited:
+        elif caption and not self.media_group_creator:
             method = self.message.edit_caption
             params.update(dict(caption=text, parse_mode=ParseMode.HTML, timeout=60,
                                isgroup=self.channel_settings.channel_id))
         elif new_reply_markup:
             method = self.message.edit_reply_markup
-        elif not edited:
-            self.forward_message()
-            return
         else:
+            self.forward_message()
             return
 
         new_message = None
@@ -74,9 +68,6 @@ class AutoEdit(BaseCommand):
             try:
                 promise = method(**params)
                 new_message = promise.result()
-                if self.media_group:
-                    self.media_group.edited = True
-                    self.media_group.save()
             except Unauthorized:
                 self.leave()
                 pass

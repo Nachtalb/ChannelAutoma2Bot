@@ -51,11 +51,19 @@ class BaseCommand:
             pass
 
         self.media_group = None
+        self.media_group_creator = None
         if self.message.media_group_id and self.channel_settings:
-            self.media_group = MediaGroup.objects.get_or_create(media_group_id=self.message.media_group_id,
-                                                                message_id=self.message.message_id,
-                                                                channel=self.channel_settings,
-                                                                bot_token=self.bot.token)[0]
+            try:
+                self.media_group = MediaGroup.objects.get(media_group_id=self.message.media_group_id,
+                                                          bot_token=self.bot.token)
+                self.media_group_creator = False
+            except MediaGroup.DoesNotExist:
+                self.media_group = MediaGroup(media_group_id=self.message.media_group_id,
+                                              message_id=self.message.message_id,
+                                              channel=self.channel_settings,
+                                              bot_token=self.bot.token)
+                self.media_group.save()
+                self.media_group_creator = True
 
     @staticmethod
     def register_start_button(name: str, header: bool = False, footer: bool = False):

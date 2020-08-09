@@ -11,7 +11,6 @@ class MediaGroup(TimeStampedModel):
 
     media_group_id = models.fields.BigIntegerField(null=True)
     message_id = models.fields.BigIntegerField()
-    edited = models.fields.BooleanField(default=False)
 
     bot_token = models.fields.CharField(max_length=200)
 
