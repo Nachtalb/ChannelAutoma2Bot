@@ -11,6 +11,7 @@ from bot.commands import BaseCommand
 from bot.filters import Filters as OwnFilters
 from bot.models.reactions import Reaction
 from bot.utils.media import watermark_text
+from bot import telegrambot as tb
 
 
 class AutoEdit(BaseCommand):
@@ -72,12 +73,11 @@ class AutoEdit(BaseCommand):
                 self.leave()
                 pass
             except BadRequest as e:
-                if e.message == 'Message can\'t be edited':
-                    self.leave()
                 pass
             except TimedOut:
                 continue
             except RetryAfter as e:
+                print(f'Retry message {method} to {self.channel_settings.name}')
                 sleep(e.retry_after)
                 continue
             break
@@ -85,8 +85,6 @@ class AutoEdit(BaseCommand):
         self.forward_message(new_message)
 
     def leave(self):
-        print(f'Skip leave for {self.channel_settings.link}')
-        return
         self.chat.leave()
         try:
             self.channel_settings.added_by.user.send_message(
