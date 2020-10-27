@@ -3,7 +3,7 @@ cached-property==1.5.1
 certifi==2019.3.9
 cffi==1.12.3
 chardet==3.0.4
-cryptography==2.6.1
+cryptography==3.2
 Django==2.2.15
 django-configurations==2.1
 django-dotenv==1.4.2
