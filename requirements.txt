@@ -12,7 +12,7 @@ django-telegrambot==1.0.1
 emoji==0.5.2
 future==0.17.1
 idna==2.8
-Pillow==7.2.0
+Pillow==9.0.0
 psycopg2==2.8.2
 pycparser==2.19
 python-telegram-bot==11.1.0
